@@ -1,0 +1,43 @@
+#
+# Warren Video package
+#
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warren-tdbp"
+description = "A warren plugin for moodle learning analytics dashboard."
+readme = "README.md"
+authors = [
+  { name="Open FUN (France Universite Numerique)", email="fun.dev@fun-mooc.fr" },
+  { name="APUI (Avignon University)", email="amelie.soubrat@univ-avignon.fr" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+license = {file = "LICENSE.md"}
+keywords = ["Analytics", "xAPI", "LRS", "LTI", "Moodle"]
+dependencies = [
+    "warren-api",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/apui-avignon-university/warren-tdbp"
+"Bug Tracker" = "https://github.com/apui-avignon-university/warren-tdbp/issues"
+
+[project.entry-points."warren.routers"]
+tdbp = "warren_tdbp.api:router"
+
+[tool.setuptools.dynamic]
+version = { attr = "warren_tdbp.__version__" }
