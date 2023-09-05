@@ -1,5 +1,5 @@
 #
-# Warren Video package
+# Warren package
 #
 [build-system]
 requires = ["setuptools>=61.0"]
