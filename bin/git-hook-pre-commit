@@ -27,9 +27,6 @@ git diff-index --check --cached "$against" --
 if git diff --staged --cached --name-only | grep -q 'src/api'; then
   make lint-api
 fi
-if git diff --staged --cached --name-only | grep -q 'src/app'; then
-  make lint-app
-fi
 if git diff --staged --cached --name-only | grep -q 'src/frontend'; then
   make lint-frontend
 fi
