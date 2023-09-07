@@ -1,5 +1,5 @@
 #
-# Warren package
+# Warren Tableaux de Bord Pédagogiques (TdBP) package
 #
 [build-system]
 requires = ["setuptools>=61.0"]
