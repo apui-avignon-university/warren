@@ -33,9 +33,8 @@ DB_HOST = postgresql
 DB_PORT = 5432
 
 # -- Warren
-WARREN_APP_IMAGE_NAME              ?= warren-app
-WARREN_APP_IMAGE_TAG               ?= development
-WARREN_APP_IMAGE_BUILD_TARGET      ?= development
+WARREN_APP_IMAGE_NAME              ?= fundocker/warren
+WARREN_APP_IMAGE_TAG               ?= app-main
 WARREN_APP_SERVER_PORT             ?= 8090
 WARREN_API_IMAGE_NAME              ?= warren-tdbp-api
 WARREN_API_IMAGE_TAG               ?= development
@@ -97,7 +96,7 @@ build-docker-api: .env
 	WARREN_API_IMAGE_BUILD_TARGET=$(WARREN_API_IMAGE_BUILD_TARGET) \
 	WARREN_API_IMAGE_NAME=$(WARREN_API_IMAGE_NAME) \
 	WARREN_API_IMAGE_TAG=$(WARREN_API_IMAGE_TAG) \
-	  $(COMPOSE) build api
+	  $(COMPOSE) build --pull api
 .PHONY: build-docker-api
 
 build-docker-frontend: ## build the frontend container
@@ -164,7 +163,7 @@ migrate-api:  ## run alembic database migrations for the api service
 	@echo "Create api service database…"
 	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"warren-api\";"' || echo "Duly noted, skiping database creation."
 	@echo "Running migrations for api service…"
-	@bin/alembic upgrade head
+	@$(COMPOSE_RUN_API) warren upgrade head
 .PHONY: migrate-api
 
 migrate-app:  ## run django database migrations for the app service
