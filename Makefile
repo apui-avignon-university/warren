@@ -141,6 +141,16 @@ down: ## stop and remove all containers
 	@$(COMPOSE) down
 .PHONY: down
 
+fixtures: ## Load test data (for development)
+	zcat ./data/avignondata.json.gz | \
+	$(COMPOSE_RUN) -T ralph ralph push \
+	    --backend es \
+	    --es-index "$(ES_INDEX)" \
+	    --es-hosts "$(ES_COMPOSE_URL)" \
+	    --chunk-size 300 \
+	    --es-op-type create
+.PHONY: fixtures
+
 logs-api: ## display api logs (follow mode)
 	@$(COMPOSE) logs -f api
 .PHONY: logs-api
@@ -243,17 +253,17 @@ lint-api: \
 
 lint-api-black: ## lint api python sources with black
 	@echo 'lint-api:black started…'
-	@$(COMPOSE_RUN_API) black plugins/tdbp/warren_tdbp
+	@$(COMPOSE_RUN_API) black plugins/tdbp
 .PHONY: lint-api-black
 
 lint-api-ruff: ## lint api python sources with ruff
 	@echo 'lint-api:ruff started…'
-	@$(COMPOSE_RUN_API) ruff plugins/tdbp/warren_tdbp
+	@$(COMPOSE_RUN_API) ruff plugins/tdbp
 .PHONY: lint-api-ruff
 
 lint-api-ruff-fix: ## lint and fix api python sources with ruff
 	@echo 'lint-api:ruff-fix started…'
-	@$(COMPOSE_RUN_API) ruff plugins/tdbp/warren_tdbp --fix
+	@$(COMPOSE_RUN_API) ruff plugins/tdbp --fix
 .PHONY: lint-api-ruff-fix
 
 lint-api-mypy: ## lint api python sources with mypy
