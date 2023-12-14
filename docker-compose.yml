@@ -52,14 +52,14 @@ services:
       - "warren.api:app"
       - "--proxy-headers"
       - "--log-config"
-      - "plugins/tdbp/logging-config.dev.yaml"
+      - "logging-config.dev.yaml"
       - "--host"
       - "0.0.0.0"
       - "--port"
       - "${WARREN_API_SERVER_PORT:-8100}"
       - "--reload"
     volumes:
-      - ./src/api:/app/plugins/tdbp
+      - ./src/api:/app
       - ./bin/seed_experience_index.py:/opt/src/seed_experience_index.py
     depends_on:
       - ralph

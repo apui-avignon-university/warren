@@ -12,6 +12,8 @@ from warren.tests.fixtures.db import (
     force_db_test_session,
 )
 
+from .fixtures import sliding_window_fake_dataset
+
 
 @pytest.fixture
 def non_mocked_hosts() -> list:

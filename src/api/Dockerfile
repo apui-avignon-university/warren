@@ -11,7 +11,7 @@ USER root:root
 
 COPY . /build/
 
-RUN pip install .
+RUN pip install ./plugins/tdbp
 
 # -- Core --
 FROM base as core
@@ -34,7 +34,7 @@ FROM core as development
 USER root:root
 
 # Copy all sources
-COPY . /app/plugins/tdbp
+COPY ./plugins/tdbp /app/plugins/tdbp
 
 # Uninstall warren and re-install it in editable mode along with development
 # dependencies
@@ -54,7 +54,7 @@ CMD ["uvicorn", \
      "warren.api:app", \
      "--proxy-headers", \
      "--log-config", \
-     "/plugins/tdbp/logging-config.prod.yaml", \
+     "logging-config.prod.yaml", \
      "--host", \
      "0.0.0.0", \
      "--port", \

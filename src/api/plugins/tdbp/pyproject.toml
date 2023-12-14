@@ -1,5 +1,5 @@
 #
-# Warren Tableaux de Bord Pédagogiques (TdBP) package
+# Warren TdBP package
 #
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -23,6 +23,8 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
 ]
 requires-python = ">=3.8"
 license = {file = "LICENSE.md"}
@@ -60,6 +62,12 @@ ci = [
 [project.entry-points."warren.routers"]
 tdbp = "warren_tdbp.api:router"
 
+[project.entry-points."warren.indicators"]
+window="warren_tdbp.indicators:SlidingWindowIndicator"
+cohort="warren_tdbp.indicators:CohortIndicator"
+scores="warren_tdbp.indicators:ScoresIndicator"
+grades="warren_tdbp.indicators:GradesIndicator"
+
 [tool.setuptools.dynamic]
 version = { attr = "warren_tdbp.__version__" }
 
@@ -70,7 +78,7 @@ omit = [
 
 # Third party packages configuration
 [tool.pytest.ini_options]
-addopts = "-v --cov-config=pyproject.toml --cov-report term-missing --cov=warren_tdbp"
+addopts = "-v --cov-config=plugins/tdbp/pyproject.toml --cov-report term-missing --cov=warren_tdbp"
 python_files = [
     "test_*.py",
     "tests.py",
@@ -102,9 +110,10 @@ select = [
 target-version = "py39"
 
 [tool.ruff.per-file-ignores]
-"*/tests/*" = [
+"**/tests/*" = [
     "S101",
     "PLR2004",  # Pylint magic-value-comparison
+    "S311",
 ]
 
 [tool.ruff.pydocstyle]
@@ -124,5 +133,6 @@ module = [
     "rfc3987.*",
     "ralph.*",  # FIXME - remove when mypy is fixed on ralph
     "lti_toolbox.*",
+    "warren.*"
 ]
 ignore_missing_imports = true
