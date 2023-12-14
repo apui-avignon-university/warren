@@ -1,0 +1,101 @@
+name: API service CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Build Docker API
+        run: make build-docker-api
+
+      - name: Export Docker image
+        run: >
+          mkdir artifacts &&
+          docker save warren-tdbp-api:development > artifacts/warren-api.tar
+
+      - name: Save Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-api
+          path: artifacts
+          retention-days: 1
+          compression-level: 0
+
+  migrate:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Retrieve saved Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-api
+          path: artifacts
+
+      - name: Load Docker image
+        run: docker load -i artifacts/warren-api.tar
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Migrate API
+        run: make migrate-api
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Retrieve saved Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-api
+          path: artifacts
+
+      - name: Load Docker image
+        run: docker load -i artifacts/warren-api.tar
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Lint API
+        run: make lint-api
+
+  test:
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Retrieve saved Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-api
+          path: artifacts
+
+      - name: Load Docker image
+        run: docker load -i artifacts/warren-api.tar
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Test API
+        run: make test-api
