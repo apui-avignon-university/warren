@@ -75,11 +75,16 @@ src/app/staticfiles/.keep:
 	touch src/app/staticfiles/.keep
 
 # -- Docker/compose
-bootstrap: ## bootstrap the project for development
-bootstrap: \
+# Pre-boostrap is an alias for the CI as it's widely used
+pre-bootstrap: \
   .env \
   .ralph/auth.json \
-	src/app/staticfiles/.keep \
+  src/app/staticfiles/.keep
+.PHONY: pre-bootstrap
+
+bootstrap: ## bootstrap the project for development
+bootstrap: \
+  pre-bootstrap \
   build \
   migrate-api \
   migrate-app
@@ -186,23 +191,29 @@ lint: \
 lint-api: ## lint api python sources
 lint-api: \
   lint-api-black \
-  lint-api-ruff
+  lint-api-ruff \
+  lint-api-mypy
 .PHONY: lint-api
 
 lint-api-black: ## lint api python sources with black
 	@echo 'lint-api:black started…'
-	@$(COMPOSE_RUN_API) black --config core/pyproject.toml core plugins
+	@$(COMPOSE_RUN_API) black plugins/tdbp/warren_tdbp
 .PHONY: lint-api-black
 
 lint-api-ruff: ## lint api python sources with ruff
 	@echo 'lint-api:ruff started…'
-	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins
+	@$(COMPOSE_RUN_API) ruff plugins/tdbp/warren_tdbp
 .PHONY: lint-api-ruff
 
 lint-api-ruff-fix: ## lint and fix api python sources with ruff
 	@echo 'lint-api:ruff-fix started…'
-	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins --fix
+	@$(COMPOSE_RUN_API) ruff plugins/tdbp/warren_tdbp --fix
 .PHONY: lint-api-ruff-fix
+
+lint-api-mypy: ## lint api python sources with mypy
+	@echo 'lint-api:mypy started…'
+	@$(COMPOSE_RUN_API) mypy plugins/tdbp/warren_tdbp
+.PHONY: lint-api-mypy
 
 ### Frontend ###
 
