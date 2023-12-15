@@ -1,0 +1,82 @@
+name: Frontend service CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Build Docker front-end
+        run: make build-docker-frontend
+
+      # To preserve permissions, we need to tar the node_modules folder
+      # https://github.com/actions/upload-artifact#permission-loss
+      - name: Make a node_modules tar archive
+        run: |
+          mkdir artifacts
+          tar cf artifacts/node_modules.tar src/frontend/node_modules
+
+      - name: Save node_modules artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependencies-frontend
+          path: artifacts/node_modules.tar
+          retention-days: 1
+
+      - name: Export Docker image
+        run: |
+          docker save warren-tdbp:frontend-development > artifacts/warren-frontend.tar
+
+      - name: Save Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-frontend
+          path: artifacts/warren-frontend.tar
+          retention-days: 1
+          compression-level: 0
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Retrieve saved Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-frontend
+          path: artifacts
+
+      - name: Load Docker image
+        run: docker load -i artifacts/warren-frontend.tar
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Retrieve saved node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: dependencies-frontend
+          path: artifacts
+
+      - name: Extract node_modules artifact
+        run: tar xf artifacts/node_modules.tar
+
+      - name: Lint front-end
+        run: |
+          make lint-frontend
