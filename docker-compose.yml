@@ -37,6 +37,8 @@ services:
       - .env
     environment:
       PYLINTHOME: /app/.pylint.d
+      RUFF_CACHE_DIR: /app/plugins/tdbp/.ruff_cache
+      MYPY_CACHE_DIR: /app/plugins/tdbp/.mypy_cache
     ports:
       - "${WARREN_API_SERVER_PORT:-8100}:${WARREN_API_SERVER_PORT:-8100}"
     command:
