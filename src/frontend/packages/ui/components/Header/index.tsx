@@ -21,7 +21,7 @@ export const Header: React.FC = () => {
       <header className="c__header">
         <div className="c__header__logo-title">
           <Logo />
-          <h1>Warren</h1>
+          <h1>TdBP</h1>
         </div>
         <BreadCrumb courseInfo={appData.course_info} />
       </header>
