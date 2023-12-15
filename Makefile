@@ -33,17 +33,17 @@ DB_HOST = postgresql
 DB_PORT = 5432
 
 # -- Warren
-WARREN_APP_IMAGE_NAME              ?= fundocker/warren
-WARREN_APP_IMAGE_TAG               ?= app-main
+WARREN_APP_IMAGE_NAME              ?= warren-tdbp
+WARREN_APP_IMAGE_TAG               ?= app-development
 WARREN_APP_SERVER_PORT             ?= 8090
-WARREN_API_IMAGE_NAME              ?= warren-tdbp-api
-WARREN_API_IMAGE_TAG               ?= development
+WARREN_API_IMAGE_NAME              ?= warren-tdbp
+WARREN_API_IMAGE_TAG               ?= api-development
 WARREN_API_IMAGE_BUILD_TARGET      ?= development
 WARREN_API_SERVER_PORT             ?= 8100
-WARREN_FRONTEND_IMAGE_NAME         ?= warren-tdbp-frontend
-WARREN_FRONTEND_IMAGE_TAG          ?= development
+WARREN_FRONTEND_IMAGE_NAME         ?= warren-tdbp
+WARREN_FRONTEND_IMAGE_TAG          ?= frontend-development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
-WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/js/build/assets/index.js
+WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/warren/assets/index.js
 
 
 # ==============================================================================
@@ -70,16 +70,11 @@ git-hook-pre-commit: .git/hooks/pre-commit
 		-s $(RALPH_LRS_AUTH_USER_SCOPE) \
 		-w
 
-src/app/staticfiles/.keep:
-	mkdir -p src/app/staticfiles
-	touch src/app/staticfiles/.keep
-
 # -- Docker/compose
 # Pre-boostrap is an alias for the CI as it's widely used
 pre-bootstrap: \
   .env \
-  .ralph/auth.json \
-  src/app/staticfiles/.keep
+  .ralph/auth.json
 .PHONY: pre-bootstrap
 
 bootstrap: ## bootstrap the project for development
@@ -93,7 +88,8 @@ bootstrap: \
 build: ## build the app containers
 build: \
   build-docker-api \
-  build-docker-frontend
+  build-docker-frontend \
+  build-docker-app
 .PHONY: build
 
 build-docker-api: ## build the api container
@@ -103,6 +99,17 @@ build-docker-api: .env
 	WARREN_API_IMAGE_TAG=$(WARREN_API_IMAGE_TAG) \
 	  $(COMPOSE) build --pull api
 .PHONY: build-docker-api
+
+build-docker-app: ## build the app container
+build-docker-app: \
+  .env \
+  build-docker-frontend \
+  build-frontend
+	WARREN_APP_IMAGE_BUILD_TARGET=$(WARREN_APP_IMAGE_BUILD_TARGET) \
+	WARREN_APP_IMAGE_NAME=$(WARREN_APP_IMAGE_NAME) \
+	WARREN_APP_IMAGE_TAG=$(WARREN_APP_IMAGE_TAG) \
+	  $(COMPOSE) build --pull app
+.PHONY: build-docker-app
 
 build-docker-frontend: ## build the frontend container
 build-docker-frontend: .env

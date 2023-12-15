@@ -27,7 +27,7 @@ jobs:
       - name: Export Docker image
         run: >
           mkdir artifacts &&
-          docker save warren-tdbp-api:development > artifacts/warren-api.tar
+          docker save warren-tdbp:api-development > artifacts/warren-api.tar
 
       - name: Save Docker image artifact
         uses: actions/upload-artifact@v4
