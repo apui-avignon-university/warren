@@ -114,7 +114,7 @@ build-docker-frontend: .env
 .PHONY: build-docker-frontend
 
 build-frontend: ## build the frontend application
-	@$(COMPOSE_RUN) -u root frontend yarn build
+	@$(COMPOSE_RUN) frontend yarn build
 .PHONY: build-frontend
 
 down: ## stop and remove all containers

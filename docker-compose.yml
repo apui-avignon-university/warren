@@ -64,8 +64,7 @@ services:
       target: "${WARREN_FRONTEND_IMAGE_BUILD_TARGET:-development}"
       args:
         DOCKER_USER: ${DOCKER_USER:-1000}
-    # FIXME: use an entrypoint to chown /app directory?
-    user: root
+    user: ${DOCKER_USER:-1000}
     image: "${WARREN_FRONTEND_IMAGE_NAME:-warren-tdbp-frontend}:${WARREN_FRONTEND_IMAGE_TAG:-development}"
     environment:
       HOME: /tmp
@@ -74,7 +73,7 @@ services:
       - run
       - dev
     volumes:
-      - ./src/frontend:/app/packages/tdbp
+      - ./src/frontend:/app
       - ./src/app/staticfiles:/app/staticfiles
     depends_on:
       - api
