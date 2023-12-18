@@ -79,3 +79,6 @@ venv.bak/
 
 # Project
 .ralph/auth.json
+
+# Private fixtures
+data/
