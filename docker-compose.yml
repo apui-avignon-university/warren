@@ -60,6 +60,7 @@ services:
       - "--reload"
     volumes:
       - ./src/api:/app/plugins/tdbp
+      - ./bin/seed_experience_index.py:/opt/src/seed_experience_index.py
     depends_on:
       - ralph
       - postgresql

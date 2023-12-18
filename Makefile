@@ -70,6 +70,12 @@ git-hook-pre-commit: .git/hooks/pre-commit
 		-s $(RALPH_LRS_AUTH_USER_SCOPE) \
 		-w
 
+# This file should exist to load fixtures
+data/statements.json.gz:
+	@echo "Please copy a gzipped statements archive in data/statements.json.gz first."
+	@exit 1
+
+
 # -- Docker/compose
 # Pre-boostrap is an alias for the CI as it's widely used
 pre-bootstrap: \
@@ -80,9 +86,11 @@ pre-bootstrap: \
 bootstrap: ## bootstrap the project for development
 bootstrap: \
   pre-bootstrap \
+  data/statements.json.gz \
   build \
   migrate-api \
-  migrate-app
+  migrate-app \
+  seed-xi
 .PHONY: bootstrap
 
 build: ## build the app containers
@@ -185,6 +193,14 @@ migrate-app:  ## run django database migrations for the app service
 	@echo "Running migrations for app service…"
 	@$(MANAGE) migrate
 .PHONY: migrate-app
+
+seed-xi: ## seed the experience index
+seed-xi: \
+  data/statements.json.gz \
+  migrate-api
+	zcat data/statements.json.gz | \
+		$(COMPOSE_RUN_API) python /opt/src/seed_experience_index.py
+.PHONY: seed-xi
 
 # -- Linters
 lint: ## lint api, app and frontend sources
