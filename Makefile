@@ -90,6 +90,7 @@ bootstrap: \
   build \
   migrate-api \
   migrate-app \
+  seed-lrs \
   seed-xi
 .PHONY: bootstrap
 
@@ -201,6 +202,24 @@ seed-xi: \
 	zcat data/statements.json.gz | \
 		$(COMPOSE_RUN_API) python /opt/src/seed_experience_index.py
 .PHONY: seed-xi
+
+seed-lrs: ## seed the LRS
+seed-lrs: \
+  data/statements.json.gz \
+  run-api
+	curl -X DELETE "$(ES_URL)/$(ES_INDEX)?pretty" || true
+	curl -X PUT "$(ES_URL)/$(ES_INDEX)?pretty"
+	curl -X PUT $(ES_URL)/$(ES_INDEX)/_settings \
+		-H 'Content-Type: application/json' \
+		-d '{"index": {"number_of_replicas": 0}}'
+	zcat < data/statements.json.gz | \
+		$(COMPOSE_RUN) -T ralph ralph push \
+	    --backend es \
+	    --es-index "$(ES_INDEX)" \
+	    --es-hosts "$(ES_COMPOSE_URL)" \
+	    --chunk-size 300 \
+	    --es-op-type create
+.PHONY: seed-lrs
 
 # -- Linters
 lint: ## lint api, app and frontend sources
