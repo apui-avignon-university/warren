@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  postgresql:
+    image: postgres:12
+    env_file:
+      - env/postgresql.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  
+  app:
+    image: apuiavignonuniversity/warren-tdbp:app-0.1.0
+    env_file:
+      - env/app.env
+    ports:
+      - "8000:8000"
+    command:
+      - "gunicorn"
+      - "-c"
+      - "/usr/local/etc/gunicorn/warren.py"
+      - "warren.wsgi:application"
+    volumes:
+      - media:/srv/media
+      - static:/srv/static
+    healthcheck:
+      test: curl -f http://localhost:8000/__heartbeat__ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  api:
+    image: apuiavignonuniversity/warren-tdbp:api-0.1.0
+    env_file:
+      - env/api.env
+    ports:
+      - "8100:8100"
+    command:
+      - uvicorn
+      - "warren.api:app"
+      - "--proxy-headers"
+      - "--log-config"
+      - "core/logging_config.yaml"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8100"
+      - "--reload"
+    configs:
+      - source: logging_config.yaml
+        target: /app/core/logging_config.yaml
+    healthcheck:
+      test: curl -f http://localhost:8100/__heartbeat__ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+configs:
+  logging_config.yaml:
+    external: true
+
+volumes:
+  postgres_data:
+    external: true
+  media:
+    external: true
+  static:
+    external: true
