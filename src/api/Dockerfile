@@ -20,6 +20,13 @@ COPY --from=builder /usr/local /usr/local
 
 WORKDIR /app
 
+USER root:root
+
+# Install curl for docker healthchecks
+RUN  apt-get update && \
+     apt-get install -y curl && \
+     rm -rf /var/lib/apt/lists/*
+
 # -- Development --
 FROM core as development
 
