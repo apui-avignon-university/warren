@@ -1,0 +1,63 @@
+name: Publish API image to Hub
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+-api'
+
+jobs:
+  hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Pre-Bootstrap
+        run: make pre-bootstrap
+
+      - name: Build API production image
+        run: |
+          WARREN_API_IMAGE_BUILD_TARGET=production \
+          WARREN_API_IMAGE_TAG=api-$GITHUB_SHA \
+            make build-docker-api
+
+      - name: Check built image availability
+        run: docker images "warren-tdbp:*"
+
+      - name: Tag image
+        run: |
+          docker images apuiavignonuniversity/warren-tdbp
+          DOCKER_TAG=$([[ "$GITHUB_REF_TYPE" == "branch" ]] && echo $GITHUB_REF_NAME || \
+            echo $GITHUB_REF_NAME | sed 's/^v\([0-9.]*\)-api/\1/')
+          # Display either:
+          # - DOCKER_TAG: main (Git branch main)
+          # or
+          # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
+          echo "DOCKER_TAG: ${DOCKER_TAG} (Git $GITHUB_REF_TYPE $GITHUB_REF_NAME)"
+          docker tag warren-tdbp:api-$GITHUB_SHA apuiavignonuniversity/warren-tdbp:api-$DOCKER_TAG
+          # Tag as "latest" for stable release git tags
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+              docker tag warren-tdbp:api-$GITHUB_SHA apuiavignonuniversity/warren-tdbp:api-latest
+          fi
+          docker images "apuiavignonuniversity/warren-tdbp:*"
+
+      - name: Publish image to DockerHub
+        run: |
+          DOCKER_TAG=$([[ "$GITHUB_REF_TYPE" == "branch" ]] && echo $GITHUB_REF_NAME || \
+            echo $GITHUB_REF_NAME | sed 's/^v\([0-9.]*\)-api/\1/')
+          # Display either:
+          # - DOCKER_TAG: main (Git branch main)
+          # or
+          # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
+          echo "DOCKER_TAG: $DOCKER_TAG (Git $GITHUB_REF_TYPE $GITHUB_REF_NAME)"
+          docker push apuiavignonuniversity/warren-tdbp:api-$DOCKER_TAG
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            docker push apuiavignonuniversity/warren-tdbp:api-latest
+          fi
