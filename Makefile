@@ -27,6 +27,7 @@ RALPH_RUNSERVER_PORT     ?= 8200
 RALPH_LRS_AUTH_USER_NAME  = ralph
 RALPH_LRS_AUTH_USER_PWD   = secret
 RALPH_LRS_AUTH_USER_SCOPE = ralph_scope
+RALPH_LRS_AUTH_USER_AGENT_MBOX = mailto:ralph@example.com
 
 # -- Postgresql
 DB_HOST = postgresql
@@ -68,6 +69,7 @@ git-hook-pre-commit: .git/hooks/pre-commit
 		-u $(RALPH_LRS_AUTH_USER_NAME) \
 		-p $(RALPH_LRS_AUTH_USER_PWD) \
 		-s $(RALPH_LRS_AUTH_USER_SCOPE) \
+		-M $(RALPH_LRS_AUTH_USER_AGENT_MBOX) \
 		-w
 
 # This file should exist to load fixtures
@@ -213,12 +215,12 @@ seed-lrs: \
 		-H 'Content-Type: application/json' \
 		-d '{"index": {"number_of_replicas": 0}}'
 	zcat < data/statements.json.gz | \
-		$(COMPOSE_RUN) -T ralph ralph push \
+		$(COMPOSE_RUN) -T ralph ralph write \
 	    --backend es \
-	    --es-index "$(ES_INDEX)" \
+	    --es-default-index "$(ES_INDEX)" \
 	    --es-hosts "$(ES_COMPOSE_URL)" \
 	    --chunk-size 300 \
-	    --es-op-type create
+	    --operation-type create
 .PHONY: seed-lrs
 
 # -- Linters
