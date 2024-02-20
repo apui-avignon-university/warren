@@ -41,6 +41,7 @@ WARREN_API_IMAGE_NAME              ?= warren-tdbp
 WARREN_API_IMAGE_TAG               ?= api-development
 WARREN_API_IMAGE_BUILD_TARGET      ?= development
 WARREN_API_SERVER_PORT             ?= 8100
+WARREN_API_TEST_DB_NAME            ?= test-warren-api
 WARREN_FRONTEND_IMAGE_NAME         ?= warren-tdbp
 WARREN_FRONTEND_IMAGE_TAG          ?= frontend-development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
@@ -90,6 +91,7 @@ bootstrap: \
   pre-bootstrap \
   data/statements.json.gz \
   build \
+  create-api-test-db \
   migrate-api \
   migrate-app \
   seed-lrs \
@@ -256,7 +258,7 @@ lint-api-ruff-fix: ## lint and fix api python sources with ruff
 
 lint-api-mypy: ## lint api python sources with mypy
 	@echo 'lint-api:mypy started…'
-	@$(COMPOSE_RUN_API) mypy plugins/tdbp/warren_tdbp
+	@$(COMPOSE_RUN_API) mypy --config ./plugins/tdbp/pyproject.toml plugins/tdbp/warren_tdbp
 .PHONY: lint-api-mypy
 
 ### Frontend ###
@@ -271,6 +273,16 @@ format-frontend: ## use prettier to format frontend sources
 	@$(COMPOSE_RUN_FRONTEND) yarn format
 .PHONY: format-frontend
 
+# -- Provisioning
+
+create-api-test-db: ## create API test database
+	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"$(WARREN_API_TEST_DB_NAME)\";"' || echo "Duly noted, skipping database creation."
+.PHONY: create-api-test-db
+
+drop-api-test-db: ## drop API test database
+	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "drop database \"$(WARREN_API_TEST_DB_NAME)\";"' || echo "Duly noted, skipping database deletion."
+.PHONY: drop-api-test-db
+
 ## -- Tests
 
 test: ## run tests
@@ -279,7 +291,9 @@ test: \
 .PHONY: test
 
 test-api: ## run api tests
-test-api: run-api
+test-api: \
+	run-api \
+	create-api-test-db
 	@$(COMPOSE_RUN_API) pytest
 .PHONY: test-api
 
