@@ -96,6 +96,9 @@ jobs:
 
       - name: Pre-Bootstrap
         run: make pre-bootstrap
-
+      
+      - name: Migrate API
+        run: make migrate-api
+  
       - name: Test API
         run: make test-api
