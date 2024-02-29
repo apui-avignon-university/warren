@@ -2,36 +2,38 @@ import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
 import { apiAxios } from "../../libs/axios";
 import useTokenInterceptor from "../../hooks/useTokenInterceptor";
+import { Action } from "./getSlidingWindow";
 
 export const DEFAULT_BASE_QUERY_KEY = "scoresCohort";
 
-export type Score = {
-  value: number;
-  action_id: string;
-  student_id: string;
+export type Scores = {
+  actions: Array<Action>;
+  scores: Array<T>;
+  total?: Array<number>;
+  average?: Array<number>;
 };
 
-type ScoreQueryParams = {
+type ScoresQueryParams = {
   courseId: string;
   until: string;
 };
 
 const getScore = async (
   client: AxiosInstance,
-  queryParams: ScoreQueryParams,
-): Promise<Array<Array<Score>>> => {
-  const response = await client.get(`tdbp/score`, {
+  queryParams: ScoresQueryParams,
+): Promise<Scores> => {
+  const response = await client.get(`tdbp/scores`, {
     params: queryParams,
   });
   return response?.data;
 };
 
 type UseScoresReturn = {
-  data: Array<Array<Score>> | undefined;
+  data: Scores | undefined;
   isFetching: boolean;
 };
 
-export const useScore = (queryParams: ScoreQueryParams): UseScoresReturn => {
+export const useScore = (queryParams: ScoresQueryParams): UseScoresReturn => {
   // Get the API client, set with the authorization headers and refresh mechanism
   const client = useTokenInterceptor(apiAxios);
 

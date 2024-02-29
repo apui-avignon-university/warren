@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { useSlidingWindow, Action } from "../../api/getSlidingWindow";
 import useFilters from "../../hooks/useFilters";
 import { Card } from "../../../components/Card";
-import { useScore } from "../../api/getScore";
+import { useScore } from "../../api/getScores";
 
 const baseOption = {
   tooltip: {

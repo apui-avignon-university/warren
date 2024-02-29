@@ -3,9 +3,26 @@ import React, { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import dayjs from "dayjs";
-import { useSlidingWindow, Action } from "../../api/getSlidingWindow";
+import { useSlidingWindow, Action, Ressources, Activities } from "../../api/getSlidingWindow";
 import useFilters from "../../hooks/useFilters";
 import { Card } from "../../../components/Card";
+
+// Define a generic type for enum
+function isInEnum<T>(value: string, enumObject: T): boolean {
+  // Check if the enum object is valid
+  if (typeof enumObject !== 'object' || enumObject === null) {
+      throw new Error('Invalid enum object');
+  }
+
+  // Iterate over enum keys and check if the value matches
+  for (const enumMember in enumObject) {
+      const enumValue = (enumObject as any)[enumMember];
+      if (typeof enumValue === 'string' && enumValue === value) {
+          return true;
+      }
+  }
+  return false;
+}
 
 const baseOption = {
   tooltip: {
@@ -52,14 +69,14 @@ export const Activites: React.FC = () => {
     }
 
     const sortedResources = activeActions
-      ?.filter((action) => action.type === "resource")
+      ?.filter((action) => isInEnum(action.module_type, Ressources))
       .sort((a, b) => a.activation_rate - b.activation_rate);
 
     return sortedResources;
   }, [slidingWindow]);
 
   const parseYAxis = (actions: Array<Action>): Array<string> =>
-    actions.map((action) => action.title.en) || [];
+    actions.map((action) => action.name) || [];
 
   const parseSeries = (actions: Array<Action>): Array<string> => ({
     name: "Taux de consultation",

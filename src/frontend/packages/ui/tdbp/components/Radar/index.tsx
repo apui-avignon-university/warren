@@ -6,7 +6,7 @@ import { Select } from "@openfun/cunningham-react";
 import { useSlidingWindow, Action } from "../../api/getSlidingWindow";
 import useFilters from "../../hooks/useFilters";
 import { Card } from "../../../components/Card";
-import { Score, useScore } from "../../api/getScore";
+import { Scores, useScore } from "../../api/getScores";
 
 const baseOption = {
   legend: {
@@ -29,9 +29,9 @@ export const Radar: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   const parseIndicators = (actions: Array<Action>): Array<string> =>
-    actions.map((action) => ({ name: action.title.en, max: 100 }));
+    actions.map((action) => ({ name: action.name, max: 100 }));
 
-  const parseSeries = (scoresCohort: Array<Array<Score>>, selectedStudent) => {
+  const parseSeries = (scoresCohort: Scores) => {
     const cohortMeanScores = [];
     const selectedStudentScores = [];
 
