@@ -3,12 +3,12 @@ import React, { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import dayjs from "dayjs";
-import { useSlidingWindow, Action, Ressources, Activities } from "../../api/getSlidingWindow";
+import { useSlidingWindow, Action, Ressources } from "../../api/getSlidingWindow";
 import useFilters from "../../hooks/useFilters";
 import { Card } from "../../../components/Card";
 
 // Define a generic type for enum
-function isInEnum<T>(value: string, enumObject: T): boolean {
+export function isInEnum<T>(value: string, enumObject: T): boolean {
   // Check if the enum object is valid
   if (typeof enumObject !== 'object' || enumObject === null) {
       throw new Error('Invalid enum object');
@@ -76,7 +76,7 @@ export const Activites: React.FC = () => {
   }, [slidingWindow]);
 
   const parseYAxis = (actions: Array<Action>): Array<string> =>
-    actions.map((action) => action.name) || [];
+    actions.map((action) => action.title) || [];
 
   const parseSeries = (actions: Array<Action>): Array<string> => ({
     name: "Taux de consultation",

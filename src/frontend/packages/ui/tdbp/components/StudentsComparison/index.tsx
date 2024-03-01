@@ -3,10 +3,12 @@ import React, { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import dayjs from "dayjs";
-import { useSlidingWindow, Action } from "../../api/getSlidingWindow";
+import { useSlidingWindow, Action, Activities, Ressources } from "../../api/getSlidingWindow";
 import useFilters from "../../hooks/useFilters";
 import { Card } from "../../../components/Card";
 import { useScore } from "../../api/getScores";
+import { isInEnum } from "../Activities";
+import { Axios } from "axios";
 
 const baseOption = {
   tooltip: {
@@ -48,11 +50,11 @@ export const StudentsComparison: React.FC = () => {
     return slidingWindow?.active_actions;
   });
 
-  const parseSeries = (data, category: string): Array<string> => {
+  const parseSeries = (data, module_type): Array<string> => {
     const numberStudents = data.length;
 
     const action_ids = actions
-      .filter((action) => action.type === category)
+      .filter((action) => isInEnum(action.module_type, module_type)
       .map((action) => action.iri);
 
     const studentsScore = [];
@@ -67,7 +69,7 @@ export const StudentsComparison: React.FC = () => {
     }
 
     return {
-      name: category === "resource" ? "Score ressource" : "Score activité",
+      name: module_type === Ressources ? "Score ressource" : "Score activité",
       type: "bar",
       stack: "total",
       label: {
@@ -93,8 +95,8 @@ export const StudentsComparison: React.FC = () => {
 
     if (data) {
       newOption.series = [
-        parseSeries(data, "resource"),
-        parseSeries(data, "activity"),
+        parseSeries(data, Ressources),
+        parseSeries(data, Activities),
       ];
     }
 

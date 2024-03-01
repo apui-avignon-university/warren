@@ -3,10 +3,11 @@ import React, { useMemo, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import { Select } from "@openfun/cunningham-react";
-import { useSlidingWindow, Action } from "../../api/getSlidingWindow";
+import { useSlidingWindow, Action, Ressources } from "../../api/getSlidingWindow";
 import useFilters from "../../hooks/useFilters";
 import { Card } from "../../../components/Card";
 import { Scores, useScore } from "../../api/getScores";
+import { isInEnum } from "../Activities/index";
 
 const baseOption = {
   legend: {
@@ -29,29 +30,14 @@ export const Radar: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   const parseIndicators = (actions: Array<Action>): Array<string> =>
-    actions.map((action) => ({ name: action.name, max: 100 }));
+    actions.map((action) => ({ name: action.title, max: 100 }));
 
-  const parseSeries = (scoresCohort: Scores) => {
-    const cohortMeanScores = [];
-    const selectedStudentScores = [];
+  const parseSeries = (scores: Scores) => {
+    const cohortMeanScores = scores.average;
+    const selectedStudentScores = scores.scores[selectedStudent];
 
-    if (!scoresCohort.length) {
+    if (!scores.scores.length) {
       return [];
-    }
-
-    const numberStudents = scoresCohort.length;
-    const numberActions = scoresCohort[0].length;
-
-    for (let i = 0; i < numberActions; i++) {
-      let sum = 0;
-      for (let j = 0; j < numberStudents; j++) {
-        sum += scoresCohort[j][i].value;
-        if (scoresCohort[j][i].student_id === selectedStudent) {
-          selectedStudentScores.push(scoresCohort[j][i].value);
-        }
-      }
-      const mean = Math.floor(sum / numberStudents);
-      cohortMeanScores.push(mean);
     }
 
     const series = [
@@ -97,7 +83,7 @@ export const Radar: React.FC = () => {
     // We assume all requests share the same xAxis.
 
     newOption.radar.indicator = parseIndicators(
-      activeActions.filter((action) => action.type === "resource"),
+      activeActions.filter((action) => isInEnum(action.module_type, Ressources)),
     );
     newOption.series = parseSeries(data || [], selectedStudent);
     return newOption;
