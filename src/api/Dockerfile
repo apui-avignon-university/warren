@@ -1,5 +1,5 @@
 # -- Base image --
-FROM fundocker/warren:api-core-main as base
+FROM fundocker/warren:api-core-0.1.0 as base
 
 # -- Builder --
 FROM base as builder
