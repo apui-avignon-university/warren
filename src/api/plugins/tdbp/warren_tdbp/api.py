@@ -4,7 +4,7 @@ import logging
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from warren.exceptions import LrsClientException
 
 from .indicators import (
@@ -23,8 +23,12 @@ logger = logging.getLogger(__name__)
 
 @router.get("/window")
 async def get_sliding_window(
-    course_id: str,
-    until: Optional[date],
+    course_id: str = Query(
+        description="The course identifier on Moodle",
+    ),
+    until: Optional[date] = Query(
+        description="End date until when to compute the sliding window",
+    ),
 ):
     """Return course sliding window indicator.
 
@@ -57,8 +61,12 @@ async def get_sliding_window(
 
 @router.get("/cohort")
 async def get_cohort(
-    course_id: str,
-    until: Optional[date],
+    course_id: str = Query(
+        description="The course identifier on Moodle",
+    ),
+    until: Optional[date] = Query(
+        description="End date until when to compute the sliding window",
+    ),
 ):
     """Return course (static) cohort information.
 
@@ -88,11 +96,19 @@ async def get_cohort(
 
 @router.get("/scores")
 async def get_scores(
-    course_id: str,
-    until: Optional[date],
-    student_id: Optional[str] = None,
-    totals: bool = False,
-    average: bool = False,
+    course_id: str = Query(
+        description="The course identifier on Moodle",
+    ),
+    until: Optional[date] = Query(
+        description="End date until when to compute the sliding window",
+    ),
+    student_id: Optional[str] = Query(
+        None, description="The student identifier on Moodle"
+    ),
+    totals: bool = Query(False, description="Flag to activate to compute total scores"),
+    average: bool = Query(
+        False, description="Flag to activate to compute average scores"
+    ),
 ):
     """Return student or cohort scores on active actions.
 
@@ -136,10 +152,18 @@ async def get_scores(
 
 @router.get("/grades")
 async def get_grades(
-    course_id: str,
-    until: Optional[date],
-    student_id: Optional[str] = None,
-    average: bool = False,
+    course_id: str = Query(
+        description="The course identifier on Moodle",
+    ),
+    until: Optional[date] = Query(
+        description="End date until when to compute the sliding window",
+    ),
+    student_id: Optional[str] = Query(
+        None, description="The student identifier on Moodle"
+    ),
+    average: bool = Query(
+        False, description="Flag to activate to compute average grades"
+    ),
 ):
     """Return average mark for graded active activities.
 
