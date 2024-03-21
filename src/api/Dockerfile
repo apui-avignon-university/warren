@@ -22,9 +22,11 @@ WORKDIR /app
 
 USER root:root
 
-# Install curl for docker healthchecks
+# Install curl for docker healthchecks and jq for API doc provisioning
 RUN  apt-get update && \
-     apt-get install -y curl && \
+     apt-get install -y \
+          curl \
+          jq && \
      rm -rf /var/lib/apt/lists/*
 
 # -- Development --

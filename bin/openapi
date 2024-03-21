@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+declare DOCKER_USER
+DOCKER_USER="$(id -u):$(id -g)"
+
+file=".docs/openapi.json"
+
+# Check if the file exists, if not, create it
+if [ ! -e "$file" ]; then
+    echo "File does not exist, creating..."
+    mkdir -p "$(dirname "$file")" || { echo "Error: Unable to create directory."; exit 1; }
+    touch "$file" || { echo "Error: Unable to create file."; exit 1; }
+    echo "{}" > "$file"  # Initializing with an empty JSON object
+    echo "File created successfully."
+else
+    echo "File already exists."
+    # Empty the file
+    > "$file"
+    echo "File content cleared."
+fi
+
+# Run the command and append output to .docs/openapi.json
+DOCKER_USER=${DOCKER_USER} docker compose exec api sh -c "curl http://api:8100/api/v1/openapi.json | \
+        jq ' \
+        .paths |= with_entries(select(.key | startswith(\"\/experiences\") or startswith(\"\/relations\") | not)) | \
+        .components.schemas |= {ValidationError: .ValidationError, HTTPValidationError: .HTTPValidationError}' \
+    " > "$file"

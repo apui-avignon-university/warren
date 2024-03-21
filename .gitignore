@@ -81,5 +81,9 @@ venv.bak/
 data
 .ralph/auth.json
 
-# Private fixtures
+# Development fixtures
 data/
+
+# Documentation site
+site/
+.docs/
