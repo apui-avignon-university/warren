@@ -9,12 +9,13 @@
     "build-theme": "cunningham -g css -o pages"
   },
   "dependencies": {
+    "@apuiavignonuniversity/warren-tdbp": "*",
     "@openfun/cunningham-react": "2.2.0",
+    "@openfun/warren-core": "0.1.1",
     "@vitejs/plugin-react": "4.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "sass": "1.69.5",
-    "ui": "*",
     "vite": "4.5.0"
   },
   "devDependencies": {
