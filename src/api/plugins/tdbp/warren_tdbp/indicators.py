@@ -122,6 +122,11 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
 
             raw_statements = pd.concat([raw_statements, pd.json_normalize(data)])
 
+        if raw_statements.empty:
+            raise IndicatorConsistencyException(
+                "Sliding window will not be computed. No statements have been found."
+            )
+
         # Find object.definition.name.<lang> columns
         matching_columns = [
             column
@@ -185,6 +190,10 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
         while since >= min_datetime:
             # Filter on statements emitted within the sliding window
             window_statements = statements[since <= statements["date"]]
+
+            if window_statements.empty:
+                since -= timedelta(days=1)  # step back from one day
+                continue
 
             # Count unique active students in the sliding window
             cohort = window_statements["actor.account.name"].unique()
