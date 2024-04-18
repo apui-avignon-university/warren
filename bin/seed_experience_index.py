@@ -135,7 +135,6 @@ def seed_experience_index(course_actions: Generator[Tuple[Course, Action], None,
             experiences += [
                 ExperienceFactory.build(
                     iri=course.iri,
-                    title=course.name,
                     structure="atomic",
                     aggregation_level=AggregationLevel.THREE,
                 )
@@ -154,7 +153,6 @@ def seed_experience_index(course_actions: Generator[Tuple[Course, Action], None,
         experiences += [
             ExperienceFactory.build(
                 iri=action.iri,
-                title=action.name,
                 structure="atomic",
                 aggregation_level=AggregationLevel.ONE,
             )
