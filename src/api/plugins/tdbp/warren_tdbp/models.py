@@ -16,23 +16,24 @@ class Activities(Enum):
     FORUM_DISCUSSION_CREATED = "\\mod_forum\\event\\discussion_created"
     FORUM_POST_CREATED = "\\mod_forum\\event\\post_created"
     TEST = "\\mod_quiz\\event\\attempt_submitted"
-    SCORM_PACKAGE_LAUNCHED = r"\mod_scorm\event\sco_launched"
-    SCORM_PACKAGE_RAW_SUBMITTED = r"\mod_scorm\event\scoreraw_submitted"
-    SCORM_PACKAGE_STATUS_SUBMITTED = r"\mod_scorm\event\status_submitted"
+    SCORM_PACKAGE_LAUNCHED = "\\mod_scorm\\event\\sco_launched"
+    SCORM_PACKAGE_RAW_SUBMITTED = "\\mod_scorm\\event\\scoreraw_submitted"
+    SCORM_PACKAGE_STATUS_SUBMITTED = "\\mod_scorm\\event\\status_submitted"
 
 
 class Ressources(Enum):
     """Ressources identifiers."""
 
     BOOK = "\\mod_book\\event\\chapter_viewed"
-    CHAT = r"\mod_chat\event\course_module_viewed"
+    CHAT = "\\mod_chat\\event\\course_module_viewed"
     DATABASE = "\\mod_data\\event\\course_module_viewed"
+    EXTERNAL_TOOL = "\\mod_lti\\event\\course_module_viewed"
     FOLDER = "\\mod_folder\\event\\course_module_viewed"
     FORUM = "\\mod_forum\\event\\discussion_viewed"
     GLOSSARY = "\\mod_glossary\\event\\course_module_viewed"
     IMS_CONTENT_PACKAGE = "\\mod_imscp\\event\\course_module_viewed"
-    EXTERNAL_TOOL = "\\mod_lti\\event\\course_module_viewed"
     PAGE = "\\mod_page\\event\\course_module_viewed"
+    RESOURCE = "\\mod_resource\\event\\course_module_viewed"
     URL = "\\mod_url\\event\\course_module_viewed"
     WIKI = "\\mod_wiki\\event\\course_module_viewed"
 
