@@ -74,11 +74,11 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
                 f"No content indexed for course {self.course_id}"
             )
 
-        for target in experience.relations_target:
-            content = await xi.experience.get(object_id=target.target_id)
+        for source in experience.relations_target:
+            content = await xi.experience.get(object_id=source.source_id)
             if content is None:
                 raise ExperienceIndexException(
-                    f"Cannot find content with id {target.target_id} for "
+                    f"Cannot find content with id {source.source_id} for "
                     f"course {self.course_id}"
                 )
             relations.append(content.iri)
