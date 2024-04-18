@@ -209,10 +209,10 @@ class SlidingWindowStatementsFactory:
                     id=uuid4(),
                     created_at=datetime(2020, 1, 1).isoformat(),
                     updated_at=datetime(2020, 1, 1).isoformat(),
-                    source_id=self.course_experience_id,
-                    target_id=uuid3(
+                    source_id=uuid3(
                         NAMESPACE_URL, f"https://fake-lms.com/action/{idx}"
                     ),
+                    target_id=self.course_experience_id,
                     kind="haspart",
                 ).dict()
                 for idx in range(1, self.settings.ACTIVE_ACTIONS + 1)
