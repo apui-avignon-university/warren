@@ -121,7 +121,9 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
 
             raw_statements = pd.concat([raw_statements, pd.json_normalize(data)])
 
-        raw_statements["timestamp"] = pd.to_datetime(raw_statements["timestamp"])
+        raw_statements["timestamp"] = raw_statements["timestamp"].apply(
+            pd.to_datetime, utc=True
+        )
         raw_statements["date"] = raw_statements["timestamp"].dt.date
 
         # Check whether statements are distributed at least over the sliding window
