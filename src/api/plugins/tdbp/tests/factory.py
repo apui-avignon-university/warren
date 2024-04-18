@@ -65,7 +65,7 @@ class SlidingWindowStatementsFactory:
                 },
                 "object": {
                     "id": action_id,
-                    "definition": {"name": f"Action {action_id}"},
+                    "definition": {"name": {"en": f"Action {action_id}"}},
                 },
                 "verb": {"id": "https://xapi.com/fake-verb"},
                 "context": {
@@ -86,7 +86,7 @@ class SlidingWindowStatementsFactory:
                 },
                 "object": {
                     "id": action_id,
-                    "definition": {"name": f"Action {action_id}"},
+                    "definition": {"name": {"en": f"Action {action_id}"}},
                 },
                 "verb": {"id": "https://xapi.com/fake-verb"},
                 "context": {

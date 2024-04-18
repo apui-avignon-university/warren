@@ -1,6 +1,7 @@
 """Warren TdBP indicators."""
 
 import logging
+import re
 from datetime import date, datetime, time, timedelta
 from typing import List, Optional
 
@@ -120,6 +121,20 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
                 raise LrsClientException("Failed to fetch statements") from exception
 
             raw_statements = pd.concat([raw_statements, pd.json_normalize(data)])
+
+        # Find object.definition.name.<lang> columns
+        matching_columns = [
+            column
+            for column in raw_statements.columns
+            if re.match(r"^object\.definition\.name.*$", column)
+        ]
+
+        # Select the first one by renaming it
+        if matching_columns:
+            raw_statements.rename(
+                columns={matching_columns[0]: "object.definition.name"},
+                inplace=True,
+            )
 
         raw_statements["timestamp"] = raw_statements["timestamp"].apply(
             pd.to_datetime, utc=True
