@@ -1,19 +1,16 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import { Card } from "@openfun/warren-core";
-import {
-  useSlidingWindow,
-  Action,
-  Activities,
-  Ressources,
-} from "../../api/getSlidingWindow";
+import { useIsFetching } from "@tanstack/react-query";
+import { Activity, Resource } from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
-import { useScore } from "../../api/getScores";
+import { Scores, useScore } from "../../api/getScores";
 import { isInEnum } from "../Activities";
+import { BarChartOption } from "../../types/chartOptions";
 
-const baseOption = {
+const baseOption: BarChartOption = {
   tooltip: {
     trigger: "axis",
     axisPointer: {
@@ -38,41 +35,36 @@ const baseOption = {
   },
   series: [],
 };
-export const StudentsComparison: React.FC = () => {
+
+interface StudentsComparisonProps {
+  course_id: string;
+}
+
+/**
+ * A React component for displaying a stack horizontal bar chart of each student score
+ * for resources and activies.
+ *
+ * @returns {JSX.Element} The JSX for the StudentsComparison component.
+ */
+export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
   const { until } = useTdbpFilters();
+  const { data } = useScore({ course_id, until, average: true });
 
-  const courseId = "wip";
+  const parseSeries = (
+    scores: Scores,
+    actionMask: Array<boolean>,
+    name: string,
+  ) => {
+    const studentsScore = Object.values(scores.scores).map((studentScores) => {
+      const score = studentScores
+        .filter((_, idx) => actionMask[idx])
+        .reduce((a, b) => a + b, 0);
 
-  const { slidingWindow } = useSlidingWindow({ courseId, until });
-  const { data } = useScore({ courseId, until });
-
-  const actions = useMemo(() => {
-    if (!slidingWindow || !slidingWindow?.active_actions) {
-      return [];
-    }
-    return slidingWindow?.active_actions;
-  }, [slidingWindow]);
-
-  const parseSeries = (data, module_type): Array<string> => {
-    const numberStudents = data.length;
-
-    const action_ids = actions
-      .filter((action) => isInEnum(action.module_type, module_type))
-      .map((action) => action.iri);
-
-    const studentsScore = [];
-
-    for (let i = 0; i < numberStudents; i++) {
-      studentsScore.push(
-        data[i]
-          .filter((item) => action_ids.includes(item.action_id))
-          .map((action) => action.value)
-          .reduce((a, b) => a + b, 0)
-      );
-    }
+      return score < 0 ? 0 : score;
+    });
 
     return {
-      name: module_type === Ressources ? "Score ressource" : "Score activité",
+      name,
       type: "bar",
       stack: "total",
       label: {
@@ -86,34 +78,51 @@ export const StudentsComparison: React.FC = () => {
   };
 
   const formattedOption = useMemo(() => {
-    if (!slidingWindow) {
+    if (!data) {
       return baseOption;
     }
 
-    const students = slidingWindow.dynamic_cohort;
-
     const newOption = cloneDeep(baseOption);
 
-    newOption.yAxis.data = students.sort().reverse();
+    newOption.yAxis.data = Object.keys(data.scores);
 
-    if (data) {
-      newOption.series = [
-        parseSeries(data, Ressources),
-        parseSeries(data, Activities),
-      ];
-    }
+    newOption.series = [
+      parseSeries(
+        data,
+        data.actions.map((action) => isInEnum(action.module_type, Resource)),
+        "Score ressource",
+      ),
+      parseSeries(
+        data,
+        data.actions.map((action) => isInEnum(action.module_type, Activity)),
+        "Score activité",
+      ),
+    ];
 
     return newOption;
-  }, [slidingWindow, data]);
+  }, [data]);
+
+  const currentFetchCount = useIsFetching();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentFetchCount > 0 && formattedOption === baseOption) {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }, [currentFetchCount, formattedOption]);
 
   return (
-    <Card className="c__activities">
-      <div className="c__activities__title">
+    <Card className="c__studentscomparison">
+      <div className="c__studentscomparison__title">
         Scores cumulés pour toutes les actions
       </div>
       <ReactECharts
         option={formattedOption}
         notMerge={true}
+        showLoading={isLoading}
+        loadingOption={{ text: "Chargement" }}
         style={{ height: 500, width: "100%" }}
       />
     </Card>

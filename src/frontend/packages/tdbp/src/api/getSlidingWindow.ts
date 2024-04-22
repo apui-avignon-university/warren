@@ -1,24 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
 import { apiAxios, useTokenInterceptor } from "@openfun/warren-core";
+import dayjs from "dayjs";
 
 const DEFAULT_BASE_QUERY_KEY = "slidingWindow";
 
-export enum Ressources {
+export enum Resource {
   BOOK = "\\mod_book\\event\\chapter_viewed",
   CHAT = "mod_chateventcourse_module_viewed",
   DATABASE = "\\mod_data\\event\\course_module_viewed",
+  EXTERNAL_TOOL = "\\mod_lti\\event\\course_module_viewed",
   FOLDER = "\\mod_folder\\event\\course_module_viewed",
   FORUM = "\\mod_forum\\event\\discussion_viewed",
   GLOSSARY = "\\mod_glossary\\event\\course_module_viewed",
   IMS_CONTENT_PACKAGE = "\\mod_imscp\\event\\course_module_viewed",
-  EXTERNAL_TOOL = "\\mod_lti\\event\\course_module_viewed",
   PAGE = "\\mod_page\\event\\course_module_viewed",
+  RESOURCE = "\\mod_resource\\event\\course_module_viewed",
   URL = "\\mod_url\\event\\course_module_viewed",
   WIKI = "\\mod_wiki\\event\\course_module_viewed",
 }
 
-export enum Activities {
+export enum Activity {
   ASSIGNMENT_SUBMITTED = "\\mod_assign\\event\\assessable_submitted",
   ASSIGNMENT_GRADED = "\\mod_assign\\event\\submission_graded",
   FEEDBACK = "\\mod_feedback\\event\\response_submitted",
@@ -32,8 +34,8 @@ export enum Activities {
 
 export type Action = {
   iri: string;
-  title: string;
-  module_type: Activities | Ressources;
+  name: string;
+  module_type: Activity | Resource;
   activation_date: string;
   activation_students: Array<string>;
   activation_rate: number;
@@ -51,7 +53,7 @@ type SlidingWindowResponse = {
 };
 
 type SlidingWindowQueryParams = {
-  courseId: string;
+  course_id: string;
   until: string;
 };
 
@@ -59,6 +61,7 @@ const getSlidingWindow = async (
   client: AxiosInstance,
   queryParams: SlidingWindowQueryParams,
 ): Promise<SlidingWindowResponse> => {
+  queryParams.until = dayjs(queryParams.until).format("YYYY-MM-DD");
   const response = await client.get(`tdbp/window`, {
     params: queryParams,
   });
@@ -76,15 +79,13 @@ export const useSlidingWindow = (
   // Get the API client, set with the authorization headers and refresh mechanism
   const client = useTokenInterceptor(apiAxios);
 
-  const { courseId, until } = queryParams;
   const queryResult = useQuery({
-    queryKey: [DEFAULT_BASE_QUERY_KEY, courseId, until],
+    queryKey: [DEFAULT_BASE_QUERY_KEY, queryParams],
     queryFn: () => getSlidingWindow(client, queryParams),
     staleTime: Infinity,
   });
 
   const { isFetching, data } = queryResult;
-
   return {
     slidingWindow: data,
     isFetching,

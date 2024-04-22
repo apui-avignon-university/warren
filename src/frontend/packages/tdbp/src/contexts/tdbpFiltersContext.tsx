@@ -13,7 +13,7 @@ export interface TdbpFiltersContextType {
 }
 
 export const TdbpFiltersContext = createContext<TdbpFiltersContextType | null>(
-  null
+  null,
 );
 
 export const TdbpFiltersProvider: React.FC<{ children: any }> = ({
