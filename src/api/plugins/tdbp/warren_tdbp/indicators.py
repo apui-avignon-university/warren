@@ -263,14 +263,16 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
             # Retrieve all statements related to the action
             action_statements = statements[statements["object.id"] == action["iri"]]
             activation_date = min(action_statements["date"])
-            cohort = action_statements["actor.account.name"].unique().tolist()
-            score = len(cohort) / dynamic_cohort_size
-            if score > 1.0:  # noqa: PLR2004
-                score = 1.0
+            activation_students = (
+                action_statements["actor.account.name"].unique().tolist()
+            )
+            activation_rate = len(activation_students) / dynamic_cohort_size
+            if activation_rate > 1.0:  # noqa: PLR2004
+                activation_rate = 1.0
 
             active_actions.loc[index, "activation_date"] = activation_date
-            active_actions.at[index, "activation_students"] = cohort
-            active_actions.loc[index, "activation_rate"] = score
+            active_actions.at[index, "activation_students"] = activation_students
+            active_actions.loc[index, "activation_rate"] = activation_rate
 
         return dataframe_to_pydantic(Action, active_actions)
 
