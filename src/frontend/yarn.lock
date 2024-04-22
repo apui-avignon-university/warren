@@ -862,10 +862,10 @@
     figlet "1.6.0"
     ts-node "10.9.1"
 
-"@openfun/warren-core@*", "@openfun/warren-core@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@openfun/warren-core/-/warren-core-0.1.1.tgz#cdca3c21f07c472b7d0e42a903be9c8ea392819e"
-  integrity sha512-WrW9Tg0kIk/Jd2cSgPv/8es4127jeSoc0ZzNIiLmFHeZ5pAQLPDCR9LNm/lRV70kbMRjVXRbg5Gd+t205USAkQ==
+"@openfun/warren-core@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@openfun/warren-core/-/warren-core-0.1.2.tgz#5458dcc1d4aaef9cdb3963d3db7dea5f65c502b0"
+  integrity sha512-31cwIZ2JRS2Iti6h9QnsOhQMJ2EvLOJ200zC1drvGyRCAYE5YRhpKSFhv28urVOfw+p2e0vdDIOmJaA68r1fcA==
   dependencies:
     "@openfun/cunningham-react" "2.4.0"
     "@tanstack/react-query" "5.17.12"
@@ -5441,6 +5441,7 @@ source-map@0.8.0-beta.0:
     whatwg-url "^7.0.0"
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==

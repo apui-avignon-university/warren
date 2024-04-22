@@ -5,12 +5,18 @@ import { Card } from "@openfun/warren-core";
 import { useSlidingWindow } from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
 
-export const Window: React.FC = () => {
+interface WindowProps {
+  course_id: string;
+}
+
+/**
+ * A React component for displaying the sliding window date range computed.
+ *
+ * @returns {JSX.Element} The JSX for the Window component.
+ */
+export const Window = ({ course_id }: WindowProps) => {
   const { until } = useTdbpFilters();
-
-  const courseId = "wip";
-
-  const { slidingWindow } = useSlidingWindow({ courseId, until });
+  const { slidingWindow } = useSlidingWindow({ course_id, until });
 
   const formatter = (date: string) => dayjs(date).format("DD MMM YYYY");
 
