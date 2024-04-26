@@ -267,7 +267,7 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
                 action_statements["actor.account.name"].unique().tolist()
             )
             activation_rate = len(activation_students) / dynamic_cohort_size
-            if activation_rate > 1.0:  # noqa: PLR2004
+            if activation_rate > 1.0:  # noqa PLR2004
                 activation_rate = 1.0
 
             active_actions.loc[index, "activation_date"] = activation_date
@@ -315,9 +315,15 @@ class CohortIndicator(BaseIndicator, CacheMixin):
         sliding_window_indicator = SlidingWindowIndicator(
             course_id=self.course_id, until=self.until
         )
-        sliding_window = await sliding_window_indicator.get_or_compute()
+        sliding_window = await sliding_window_indicator.compute()
         statements = await sliding_window_indicator.get_statements()
         active_actions = sliding_window.active_actions
+
+        if not active_actions:
+            raise IndicatorConsistencyException(
+                "Sliding window will not be computed. "
+                "Not enough active actions have been found."
+            )
 
         # Filter statements from active actions
         filtered_statements = statements[
@@ -379,7 +385,13 @@ class ScoresIndicator(BaseIndicator, CacheMixin):
         sliding_window_indicator = SlidingWindowIndicator(
             course_id=self.course_id, until=self.until
         )
-        sliding_window = await sliding_window_indicator.get_or_compute()
+        sliding_window = await sliding_window_indicator.compute()
+
+        if not sliding_window.active_actions:
+            raise IndicatorConsistencyException(
+                "Sliding window will not be computed. "
+                "Not enough active actions have been found."
+            )
 
         active_actions = pd.DataFrame(
             [action.dict() for action in sliding_window.active_actions]
@@ -389,7 +401,7 @@ class ScoresIndicator(BaseIndicator, CacheMixin):
         course_cohort_indicator = CohortIndicator(
             course_id=self.course_id, until=self.until
         )
-        course_cohort = await course_cohort_indicator.get_or_compute()
+        course_cohort = await course_cohort_indicator.compute()
 
         if self.student_id:
             if self.student_id not in course_cohort.keys():
@@ -507,11 +519,17 @@ class GradesIndicator(BaseIndicator, CacheMixin):
         sliding_window_indicator = SlidingWindowIndicator(
             course_id=self.course_id, until=self.until
         )
-        sliding_window = await sliding_window_indicator.get_or_compute()
+        sliding_window = await sliding_window_indicator.compute()
 
         statements = await sliding_window_indicator.get_statements()
 
         active_actions = sliding_window.active_actions
+
+        if not active_actions:
+            raise IndicatorConsistencyException(
+                "Sliding window will not be computed. "
+                "Not enough active actions have been found."
+            )
 
         # Filter on active activities
         active_activities = [

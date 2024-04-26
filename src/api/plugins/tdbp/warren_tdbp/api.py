@@ -47,7 +47,7 @@ async def get_sliding_window(
 
     logger.debug("Start computing 'window' indicator")
     try:
-        results = await indicator.get_or_compute()
+        results = await indicator.compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing sliding window"
         logger.exception("%s. Exception:", message)
@@ -82,7 +82,7 @@ async def get_cohort(
     indicator = CohortIndicator(course_id=course_id, until=until)
 
     try:
-        results = await indicator.get_or_compute()
+        results = await indicator.compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing course cohort"
         logger.exception("%s. Exception:", message)
@@ -138,7 +138,7 @@ async def get_scores(
     )
 
     try:
-        results = await indicator.get_or_compute()
+        results = await indicator.compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing student score(s)"
         logger.exception("%s. Exception:", message)
@@ -186,7 +186,7 @@ async def get_grades(
     )
 
     try:
-        results = await indicator.get_or_compute()
+        results = await indicator.compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing grades"
         logger.exception("%s. Exception:", message)
