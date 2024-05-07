@@ -78,11 +78,7 @@ env.bak/
 venv.bak/
 
 # Project
-data
 .ralph/auth.json
-
-# Development fixtures
-data/
 
 # Documentation site
 site/
