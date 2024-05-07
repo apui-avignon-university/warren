@@ -81,12 +81,6 @@ git-hook-pre-commit: .git/hooks/pre-commit
 		-M $(RALPH_LRS_AUTH_USER_AGENT_MBOX) \
 		-w
 
-# This file should exist to load fixtures
-data/statements.json.gz:
-	@echo "Please copy a gzipped statements archive in data/statements.json.gz first."
-	@exit 1
-
-
 # -- Docker/compose
 # Pre-boostrap is an alias for the CI as it's widely used
 pre-bootstrap: \
@@ -97,7 +91,6 @@ pre-bootstrap: \
 bootstrap: ## bootstrap the project for development
 bootstrap: \
   pre-bootstrap \
-  data/statements.json.gz \
   build \
   create-api-test-db \
   migrate-api \
@@ -153,16 +146,6 @@ build-frontend: ## build the frontend application
 down: ## stop and remove all containers
 	@$(COMPOSE) down
 .PHONY: down
-
-fixtures: ## Load test data (for development)
-	zcat ./data/avignondata.json.gz | \
-	$(COMPOSE_RUN) -T ralph ralph push \
-	    --backend es \
-	    --es-index "$(ES_INDEX)" \
-	    --es-hosts "$(ES_COMPOSE_URL)" \
-	    --chunk-size 300 \
-	    --es-op-type create
-.PHONY: fixtures
 
 logs-api: ## display api logs (follow mode)
 	@$(COMPOSE) logs -f api
@@ -224,7 +207,6 @@ migrate-app:  ## run django database migrations for the app service
 
 seed-xi: ## seed the experience index
 seed-xi: \
-  data/statements.json.gz \
   migrate-api
 	zcat data/statements.json.gz | \
 		$(COMPOSE_RUN_API) python /opt/src/seed_experience_index.py
@@ -232,7 +214,6 @@ seed-xi: \
 
 seed-lrs: ## seed the LRS
 seed-lrs: \
-  data/statements.json.gz \
   run-api
 	curl -X DELETE "$(ES_URL)/$(ES_INDEX)?pretty" || true
 	curl -X PUT "$(ES_URL)/$(ES_INDEX)?pretty"
