@@ -26,27 +26,23 @@ jobs:
 
       # To preserve permissions, we need to tar the node_modules folder
       # https://github.com/actions/upload-artifact#permission-loss
-      - name: Make a node_modules tar archive
+      - name: Make node_modules tar archives
         run: |
           mkdir artifacts
-          tar cf artifacts/node_modules.tar src/frontend/node_modules
-
-      - name: Save node_modules artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependencies-frontend
-          path: artifacts/node_modules.tar
-          retention-days: 1
-
+          tar cf artifacts/node_modules.tar src/frontend/apps/web/node_modules \
+            src/frontend/node_modules \
+            src/frontend/packages/tdbp/node_modules \
+            src/frontend/packages/eslint-config-custom/node_modules
+          
       - name: Export Docker image
         run: |
           docker save warren-tdbp:frontend-development > artifacts/warren-frontend.tar
 
-      - name: Save Docker image artifact
+      - name: Save artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: docker-frontend
-          path: artifacts/warren-frontend.tar
+          name: build
+          path: artifacts
           retention-days: 1
           compression-level: 0
 
@@ -59,7 +55,7 @@ jobs:
       - name: Retrieve saved Docker image
         uses: actions/download-artifact@v4
         with:
-          name: docker-frontend
+          name: build
           path: artifacts
 
       - name: Load Docker image
@@ -68,15 +64,10 @@ jobs:
       - name: Pre-Bootstrap
         run: make pre-bootstrap
 
-      - name: Retrieve saved node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: dependencies-frontend
-          path: artifacts
-
-      - name: Extract node_modules artifact
-        run: tar xf artifacts/node_modules.tar
-
-      - name: Lint front-end
+      - name: Extract node_modules artifacts
+        run: |
+          tar xf artifacts/node_modules.tar
+          
+      - name: Lint code
         run: |
           make lint-frontend
