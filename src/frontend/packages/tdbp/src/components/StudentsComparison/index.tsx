@@ -117,8 +117,8 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
 
     const newOption = cloneDeep(baseOption);
 
-    let studentScores: Array<StudentScore> = Object.entries(data.scores).map(
-      ([username, scores]) => ({
+    const studentScores: Array<StudentScore> = Object.entries(data.scores)
+      .map(([username, scores]) => ({
         username,
         scoreActivity: sumScores(
           scores,
@@ -128,13 +128,13 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
           scores,
           data.actions.map((action) => isInEnum(action.module_type, Resource)),
         ),
-      }),
-    );
-
-    studentScores = studentScores.sort(
-      (a, b) =>
-        a.scoreActivity + a.scoreResource - (b.scoreActivity + b.scoreResource),
-    );
+      }))
+      .sort(
+        (a, b) =>
+          a.scoreActivity +
+          a.scoreResource -
+          (b.scoreActivity + b.scoreResource),
+      );
 
     newOption.yAxis.data = studentScores.map((e) => e.username);
 
