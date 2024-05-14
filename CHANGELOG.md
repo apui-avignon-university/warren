@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Rework frontend to connect to now stable API
+
 ## [0.1.0] - 2024-03-05
 
 ### Added

@@ -5,6 +5,7 @@ export interface BarChartOption {
       type: "shadow" | "line";
     };
   };
+  animation?: boolean;
   legend: {
     data?: string[];
   };
@@ -13,6 +14,27 @@ export interface BarChartOption {
     right: string;
     bottom: string;
     containLabel: boolean;
+  };
+  dataZoom?: Array<{
+    type?: string;
+    yAxisIndex?: number;
+    zoomLock?: boolean;
+    filterMode?: string;
+    width?: number;
+    right?: number;
+    top?: number;
+    bottom?: number;
+    start?: number;
+    end?: number;
+    handleSize?: number;
+    showDetail?: boolean;
+    zoomOnMouseWheel?: false;
+    moveOnMouseMove?: true;
+    moveOnMouseWheel?: true;
+  }>;
+  emphasis?: {
+    focus: string;
+    blurScope: string;
   };
   xAxis: {
     type: string;

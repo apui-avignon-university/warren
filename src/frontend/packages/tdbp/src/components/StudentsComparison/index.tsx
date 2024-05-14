@@ -6,7 +6,7 @@ import { Card } from "@openfun/warren-core";
 import { useIsFetching } from "@tanstack/react-query";
 import { Activity, Resource } from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
-import { Scores, useScore } from "../../api/getScores";
+import { useScore } from "../../api/getScores";
 import { isInEnum } from "../Activities";
 import { BarChartOption } from "../../types/chartOptions";
 
@@ -18,6 +18,7 @@ const baseOption: BarChartOption = {
       type: "shadow", // 'shadow' as default; can also be 'line' or 'shadow'
     },
   },
+  animation: false,
   legend: {},
   grid: {
     left: "3%",
@@ -25,6 +26,36 @@ const baseOption: BarChartOption = {
     bottom: "3%",
     containLabel: true,
   },
+  emphasis: {
+    focus: "series",
+    blurScope: "coordinateSystem",
+  },
+  dataZoom: [
+    {
+      type: "slider",
+      yAxisIndex: 0,
+      zoomLock: true,
+      filterMode: "none",
+      width: 10,
+      right: 10,
+      top: 70,
+      bottom: 20,
+      start: 95,
+      end: 100,
+      handleSize: 0,
+      showDetail: false,
+    },
+    {
+      type: "inside",
+      yAxisIndex: 0,
+      filterMode: "none",
+      start: 95,
+      end: 100,
+      zoomOnMouseWheel: false,
+      moveOnMouseMove: true,
+      moveOnMouseWheel: true,
+    },
+  ],
   xAxis: {
     type: "value",
     min: 0,
@@ -40,6 +71,12 @@ interface StudentsComparisonProps {
   course_id: string;
 }
 
+interface StudentScore {
+  username: string;
+  scoreActivity: number;
+  scoreResource: number;
+}
+
 /**
  * A React component for displaying a stack horizontal bar chart of each student score
  * for resources and activies.
@@ -50,19 +87,15 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
   const { until } = useTdbpFilters();
   const { data } = useScore({ course_id, until, average: true });
 
-  const parseSeries = (
-    scores: Scores,
-    actionMask: Array<boolean>,
-    name: string,
-  ) => {
-    const studentsScore = Object.values(scores.scores).map((studentScores) => {
-      const score = studentScores
-        .filter((_, idx) => actionMask[idx])
-        .reduce((a, b) => a + b, 0);
+  const sumScores = (scores: Array<number>, actionMask: Array<boolean>) => {
+    const sum = scores
+      .filter((_, idx) => actionMask[idx])
+      .reduce((a, b) => a + b, 0);
 
-      return score < 0 ? 0 : score;
-    });
+    return sum < 0 ? 0 : sum;
+  };
 
+  const parseSerie = (serie: Array<number>, name: string) => {
     return {
       name,
       type: "bar",
@@ -73,7 +106,7 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
       emphasis: {
         focus: "series",
       },
-      data: studentsScore,
+      data: serie,
     };
   };
 
@@ -84,17 +117,34 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
 
     const newOption = cloneDeep(baseOption);
 
-    newOption.yAxis.data = Object.keys(data.scores);
+    let studentScores: Array<StudentScore> = Object.entries(data.scores).map(
+      ([username, scores]) => ({
+        username,
+        scoreActivity: sumScores(
+          scores,
+          data.actions.map((action) => isInEnum(action.module_type, Activity)),
+        ),
+        scoreResource: sumScores(
+          scores,
+          data.actions.map((action) => isInEnum(action.module_type, Resource)),
+        ),
+      }),
+    );
+
+    studentScores = studentScores.sort(
+      (a, b) =>
+        a.scoreActivity + a.scoreResource - (b.scoreActivity + b.scoreResource),
+    );
+
+    newOption.yAxis.data = studentScores.map((e) => e.username);
 
     newOption.series = [
-      parseSeries(
-        data,
-        data.actions.map((action) => isInEnum(action.module_type, Resource)),
+      parseSerie(
+        studentScores.map((e) => e.scoreResource),
         "Score ressource",
       ),
-      parseSeries(
-        data,
-        data.actions.map((action) => isInEnum(action.module_type, Activity)),
+      parseSerie(
+        studentScores.map((e) => e.scoreActivity),
         "Score activité",
       ),
     ];
