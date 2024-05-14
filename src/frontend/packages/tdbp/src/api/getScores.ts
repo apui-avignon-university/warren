@@ -38,7 +38,10 @@ type UseScoresReturn = {
   isFetching: boolean;
 };
 
-export const useScore = (queryParams: ScoresQueryParams): UseScoresReturn => {
+export const useScore = (
+  queryParams: ScoresQueryParams,
+  enabled?: boolean,
+): UseScoresReturn => {
   // Get the API client, set with the authorization headers and refresh mechanism
   const client = useTokenInterceptor(apiAxios);
 
@@ -46,6 +49,7 @@ export const useScore = (queryParams: ScoresQueryParams): UseScoresReturn => {
     queryKey: [DEFAULT_BASE_QUERY_KEY, queryParams],
     queryFn: () => getScore(client, queryParams),
     staleTime: Infinity,
+    enabled,
   });
 
   const { isFetching, data } = queryResult;

@@ -4,7 +4,11 @@ import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import { Card } from "@openfun/warren-core";
 import { useIsFetching } from "@tanstack/react-query";
-import { Activity, Resource } from "../../api/getSlidingWindow";
+import {
+  Activity,
+  Resource,
+  useSlidingWindow,
+} from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
 import { useScore } from "../../api/getScores";
 import { isInEnum } from "../Activities";
@@ -85,7 +89,11 @@ interface StudentScore {
  */
 export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
   const { until } = useTdbpFilters();
-  const { data } = useScore({ course_id, until, average: true });
+  const { slidingWindow } = useSlidingWindow({ course_id, until });
+  const { data } = useScore(
+    { course_id, until, average: true },
+    !!slidingWindow,
+  );
 
   const sumScores = (scores: Array<number>, actionMask: Array<boolean>) => {
     const sum = scores
