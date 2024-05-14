@@ -14,6 +14,7 @@ import { RadarChartOption } from "../../types/chartOptions";
 const baseOption: RadarChartOption = {
   tooltip: {
     trigger: "item",
+    valueFormatter: (value) => value.toFixed(2),
     axisPointer: {
       // Use axis to trigger tooltip
       type: "shadow", // 'shadow' as default; can also be 'line' or 'shadow'

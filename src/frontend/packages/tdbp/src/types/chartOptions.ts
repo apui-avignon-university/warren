@@ -67,6 +67,7 @@ export interface RadarChartOption {
     axisPointer: {
       type: "shadow" | "line";
     };
+    valueFormatter: (value: number) => string;
   };
   legend: {
     data: string[];
