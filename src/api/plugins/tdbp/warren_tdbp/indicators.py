@@ -141,8 +141,8 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
                 inplace=True,
             )
 
-        raw_statements["timestamp"] = raw_statements["timestamp"].apply(
-            pd.to_datetime, utc=True
+        raw_statements["timestamp"] = pd.to_datetime(
+            raw_statements["timestamp"], errors="raise", utc=True
         )
         raw_statements["date"] = raw_statements["timestamp"].dt.date
 
