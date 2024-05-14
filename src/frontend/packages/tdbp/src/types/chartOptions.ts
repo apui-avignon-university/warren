@@ -40,6 +40,12 @@ export interface BarChartOption {
 }
 
 export interface RadarChartOption {
+  tooltip: {
+    trigger: string;
+    axisPointer: {
+      type: "shadow" | "line";
+    };
+  };
   legend: {
     data: string[];
   };
