@@ -1,0 +1,46 @@
+name: Repository service CI
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:  
+  lint-git:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      
+      - name: Check absence of print statements
+        run: |
+            ! git diff origin/main..HEAD -- . ':(exclude).github' \
+            ':(exclude)notebooks' | grep "print("
+
+      - name: Check absence of fixup commits
+        run: |
+            ! git log --pretty=format:%s | grep 'fixup!'
+
+      - name: Upgrade pip
+        run: pip install --upgrade pip
+
+      - name: Install docs dependencies
+        run: pip install --user gitlint requests
+
+      - name: lint commit messages added to main
+        run: |
+            ~/.local/bin/gitlint --commits origin/main..HEAD
+
+  # Check that the CHANGELOG has been updated in the current branch
+  check-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Check that the CHANGELOG has been modified in the current branch
+        run: |
+            git whatchanged --name-only --pretty="" origin/main..HEAD | grep CHANGELOG
