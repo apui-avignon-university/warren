@@ -43,12 +43,10 @@ interface RadarProps {
 export const Radar = ({ course_id }: RadarProps) => {
   const { until } = useTdbpFilters();
   const { slidingWindow } = useSlidingWindow({ course_id, until });
-
-  const { data } = useScore({
-    course_id,
-    until,
-    average: true,
-  });
+  const { data } = useScore(
+    { course_id, until, average: true },
+    !!slidingWindow,
+  );
 
   const [selectedStudent, setSelectedStudent] = useState<string>();
 
