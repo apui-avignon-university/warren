@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Changed
 
+- Upgrade base Warren images to 0.2.0
 - Rework frontend to connect to now stable API
 
 ## [0.1.0] - 2024-03-05
