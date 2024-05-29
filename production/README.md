@@ -89,6 +89,49 @@ Ensure Warren-TdBP API is connected to a Ralph instance for fetching statements.
 using Docker Swarm to deploy Ralph, make sure both services are running on the same
 `backend` network.
 
+### Configuring the indexer cronjob
+
+To understand the activities of a course, the Experience Index stores the relationships
+between each activity within a course. We propose using a cronjob to index courses and
+their content at scheduled times. This cronjob will index all courses and contents in
+the target LMS. You can update the cronjob schedule or change the CLI indexer command to
+index specific courses as needed.
+
+In this deployment, we use [swarm-cronjob](https://github.com/crazy-max/swarm-cronjob)
+to operate cronjobs. Time schedules are set through labels, which you can modify before
+deploying the stack, or change on a running stack with the command:
+
+```bash
+docker service update tdbp_indexer-cronjob --label-add "swarm.cronjob.schedule=55 15 * * *"
+```
+
+To check the logs of execution of the cronjob once the stack is deployed, use the
+command:
+```bash
+docker service logs -f tdbp_indexer-cronjob
+```
+
+### Configuring Moodle web services for XI indexation 
+
+In order for the Experience Index to access the Moodle courses and their content, we
+need to configure a web service under `Moodle > Web services` and following the 10 steps
+provided by Moodle:
+1. Enable web service: `Yes`
+2. Enable protocols: `rest`
+3. Create a specific user: `warren_tdbp`
+4. Check its user capability
+5. Select a service: add a new service (let's name it `Warren-TdBP - XI`) 
+6. Add functions: new service `Warren-TdBP - XI` needs to have the following functions:
+- `core_course_get_courses` to get course details.
+- `core_course_get_contents` to get course contents.
+7. Select a specific user: select the user previously created `warren_tdbp`
+8. Create a token for a user: create a token for user `warren_tdbp`
+
+We should now have a web service token for accessing our Moodle courses and their
+content. This token should be set in the environment variable `WARREN_XI_LMS_API_TOKEN`.
+Don't forget to also set the variable `WARREN_XI_LMS_BASE_URL` with your Moodle instance
+URL.
+
 ### Deploying Warren-TdBP
 
 Docker Engine in swarm mode can deploy services defined in a Compose file. Deploy the
@@ -174,16 +217,19 @@ Next, add an LTI consumers for Moodle, by providing the Moodle site URL. Add an 
 passport for this newly created Moodle consumer. An Oauth consumer key and a shared
 secret will be generated on save.
 
+### Adding Warren-TdBP as an external tool in Moodle
+
 Now that we have our LTI passport, log into the Moodle admin site and add an external
 tool by following this
 [documentation](https://docs.moodle.org/403/en/LTI_External_tools).
 
-LTI tool URL: `https://app.example.com`
-LTI version: `LTI 1.1`
-Supports Deep linking: Enabled
-Content Selection URL: `https://app.example.com/lti/select`
-Share launcher's name with tool: Always
-Share launcher's email with tool: Always
+- LTI tool URL: `https://app.example.com`
+- LTI version: `LTI 1.1`
+- Supports Deep linking: Enabled
+- Content Selection URL: `https://app.example.com/lti/select`
+- Share launcher's name with tool: Always
+- Share launcher's email with tool: Always
+- Default launch container: Existing window
 
 You can now create a new activity from the Warren-TdBP tool inside a course!
 
