@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - Upgrade base Warren images to 0.3.0
+- Secure API endpoints with LTI token
 
 ## [0.2.0] - 2024-05-23
 
