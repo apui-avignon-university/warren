@@ -8,6 +8,10 @@ and this project adheres to
 
 ## Unreleased
 
+### Changed
+
+- Upgrade base Warren images to 0.3.0
+
 ## [0.2.0] - 2024-05-23
 
 ### Changed

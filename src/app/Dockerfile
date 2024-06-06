@@ -1,5 +1,5 @@
 # -- Base image --
-FROM  fundocker/warren:app-0.2.0
+FROM  fundocker/warren:app-0.3.0
 
 # Privileged user
 USER root:root
