@@ -1,6 +1,7 @@
 """Tests for the TdBP Warren plugin."""
 
 from datetime import datetime
+from typing import List
 
 import pandas as pd
 import pytest
@@ -19,21 +20,44 @@ from .factory import test_settings
 async def test_indicators_sliding_window_valid_parameters(
     db_session, sliding_window_fake_dataset
 ):
-    """Test '/window' endpoint with invalid course_id."""
+    """Test '/window' endpoint with valid parameters."""
     course_id = "https://fake-lms.com/course/tdbp_101"
 
-    indicator = SlidingWindowIndicator(course_id=course_id)
+    # 1. When the indicator is computed for an instructor
+    indicator = SlidingWindowIndicator(course_id=course_id, student_id=None)
     sliding_window = await indicator.compute()
 
     # Check constraint on sliding window size
     window_size = sliding_window.window.until - sliding_window.window.since
     assert window_size.days >= test_settings.SLIDING_WINDOW_MIN
 
-    # Check constraint on dynamic cohort size
+    # Check dynamic_cohort is unaggregated
+    assert isinstance(sliding_window.dynamic_cohort, List)
+
+    # Check constraint on dynamic cohort
     assert len(sliding_window.dynamic_cohort) >= test_settings.DYNAMIC_COHORT_MIN
 
     # Check constraint on active actions
     assert len(sliding_window.active_actions) >= test_settings.ACTIVE_ACTIONS_MIN
+
+    for action in sliding_window.active_actions:
+        # Check activation_students is set
+        assert isinstance(action.activation_students, List)
+        # Check that is_activator_student is unset
+        assert action.is_activator_student is None
+
+    # 2. When the indicator is computed for a student
+    indicator = SlidingWindowIndicator(course_id=course_id, student_id="student_1")
+    sliding_window = await indicator.compute()
+
+    # Check dynamic_cohort is unset
+    assert sliding_window.dynamic_cohort is None
+
+    for action in sliding_window.active_actions:
+        # Check activation_students is unset
+        assert action.activation_students is None
+        # Check is_activator_student is set
+        assert isinstance(action.is_activator_student, bool)
 
 
 @pytest.mark.anyio
@@ -44,14 +68,15 @@ async def test_indicators_cohort_valid_parameters(
     course_id = "https://fake-lms.com/course/tdbp_101"
     date_until = datetime.now().date()
 
-    indicator = CohortIndicator(course_id=course_id, until=date_until)
+    # 1. When the indicator is computed for an instructor
+    indicator = CohortIndicator(course_id=course_id, until=date_until, student_id=None)
     cohort = await indicator.compute()
 
     assert len(cohort) >= test_settings.DYNAMIC_COHORT_MIN
 
-    # Check only active actions in output
+    # Check only active actions are listed in student activity
     sliding_window_indicator = SlidingWindowIndicator(
-        course_id=course_id, until=date_until
+        course_id=course_id, until=date_until, student_id=None
     )
     sliding_window = await sliding_window_indicator.compute()
     active_actions_iris = [action.iri for action in sliding_window.active_actions]
@@ -63,6 +88,27 @@ async def test_indicators_cohort_valid_parameters(
     actions_iris = [action for actions in cohort.values() for action in actions]
     assert sorted((set(actions_iris))) == sorted(active_actions_iris)
 
+    # 2. When the indicator is computed for a student
+    indicator = CohortIndicator(
+        course_id=course_id, until=date_until, student_id="student_1"
+    )
+    cohort = await indicator.compute()
+
+    # Check only student is returned
+    assert len(cohort.values()) == 1
+    assert list(cohort.keys())[0] == "student_1"
+
+    # Check only active actions are listed in student activity
+    sliding_window_indicator = SlidingWindowIndicator(
+        course_id=course_id, until=date_until, student_id="student_1"
+    )
+    sliding_window = await sliding_window_indicator.compute()
+    active_actions_iris = [action.iri for action in sliding_window.active_actions]
+
+    assert all(
+        action_iri in active_actions_iris for action_iri in list(cohort.values())[0]
+    )
+
 
 @pytest.mark.anyio
 async def test_indicators_scores_valid_parameters(
@@ -72,7 +118,7 @@ async def test_indicators_scores_valid_parameters(
     course_id = "https://fake-lms.com/course/tdbp_101"
     date_until = datetime.now().date()
 
-    # 1.0 Compute scores for the cohort
+    # 1. When the indicator is computed for an instructor
     indicator = ScoresIndicator(course_id=course_id, until=date_until, student_id=None)
     scores = await indicator.compute()
 
@@ -113,7 +159,7 @@ async def test_indicators_scores_valid_parameters(
     scores_values = pd.DataFrame.from_dict(scores.scores, orient="index")
     assert scores_values.sum().tolist() == scores.total
 
-    # 2.0. Compute scores for a student having being active within the course
+    # 1. When the indicator is computed for a student having being active in the course
     indicator = ScoresIndicator(
         course_id=course_id, until=date_until, student_id="student_2"
     )

@@ -16,6 +16,7 @@ from .indicators import (
     SlidingWindowIndicator,
 )
 from .models import Grades, Scores, SlidingWindow
+from .utils import is_instructor
 
 router = APIRouter(
     prefix="/tdbp",
@@ -27,6 +28,8 @@ logger = logging.getLogger(__name__)
 @router.get("/window")
 async def get_sliding_window(
     course_id: Annotated[str, Depends(get_lti_course_id)],
+    roles: Annotated[List[LTIRole], Depends(get_lti_roles)],
+    user_id: Annotated[str, Depends(get_lti_user_id)],
     until: Annotated[
         Optional[date],
         Query(
@@ -38,6 +41,8 @@ async def get_sliding_window(
 
     Args:
         course_id (str): The course identifier on Moodle.
+        roles (LTIRole): The roles of the user.
+        user_id (str): The user identifier on Moodle.
         until (date): End date until when to compute the sliding window.
 
     Returns:
@@ -47,9 +52,18 @@ async def get_sliding_window(
             - dynamic cohort (List[str]): list of student IDs who were active during
                 the sliding window.
     """
-    indicator = SlidingWindowIndicator(course_id=course_id, until=until)
-
     logger.debug("Start computing 'window' indicator")
+
+    # Instructors have access to identifying informations for the whole cohort
+    student_id = None
+    # Students can only read aggregated information about the sliding window
+    if not is_instructor(roles):
+        student_id = user_id
+
+    indicator = SlidingWindowIndicator(
+        course_id=course_id, until=until, student_id=student_id
+    )
+
     try:
         results = await indicator.compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
@@ -66,6 +80,8 @@ async def get_sliding_window(
 @router.get("/cohort")
 async def get_cohort(
     course_id: Annotated[str, Depends(get_lti_course_id)],
+    roles: Annotated[List[LTIRole], Depends(get_lti_roles)],
+    user_id: Annotated[str, Depends(get_lti_user_id)],
     until: Annotated[
         Optional[date],
         Query(description="End date until when to compute the sliding window"),
@@ -75,6 +91,8 @@ async def get_cohort(
 
     Args:
         course_id (str): The course identifier on Moodle.
+        roles (LTIRole): The roles of the user.
+        user_id (str): The user identifier on Moodle.
         until (date): End date until when to compute the sliding window.
 
     Returns:
@@ -82,7 +100,14 @@ async def get_cohort(
 
     """
     logger.debug("Start computing 'cohort' indicator")
-    indicator = CohortIndicator(course_id=course_id, until=until)
+
+    # Instructors can see activity of all students
+    student_id = None
+    # Students can only see their activity
+    if not is_instructor(roles):
+        student_id = user_id
+
+    indicator = CohortIndicator(course_id=course_id, until=until, student_id=student_id)
 
     try:
         results = await indicator.compute()
@@ -135,12 +160,13 @@ async def get_scores(  # noqa: PLR0913
             - average (list): Average students' score per active action.
     """
     logger.debug("Start computing 'scores' indicator")
+
     # Instructors can see scores of all students, the totals and average
-    if any(role in ["instructor", "teacher", "staff"] for role in roles):
-        student_id = None
+    student_id = None
     # Students can only see their scores
-    else:
+    if not is_instructor(roles):
         student_id = user_id
+
     indicator = ScoresIndicator(
         course_id=course_id,
         until=until,
@@ -194,12 +220,13 @@ async def get_grades(
             - average (list): Average students' grades per active activity.
     """
     logger.debug("Start computing 'grades' indicator")
-    # Instructors can see scores of all students, the totals and average
-    if any(role in ["instructor", "teacher", "staff"] for role in roles):
-        student_id = None
-    # Students can only see their scores
-    else:
+
+    # Instructors can see grades of all students, the totals and average
+    student_id = None
+    # Students can only see their grades
+    if not is_instructor(roles):
         student_id = user_id
+
     indicator = GradesIndicator(
         course_id=course_id, until=until, student_id=student_id, average=average
     )
