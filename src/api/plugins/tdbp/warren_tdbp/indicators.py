@@ -3,7 +3,7 @@
 import logging
 import re
 from datetime import date, datetime, time, timedelta
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -43,6 +43,7 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
         self,
         course_id: str,
         until: Optional[date] = None,
+        student_id: Optional[str] = None,
         sliding_window_min: int = settings.SLIDING_WINDOW_MIN,
         active_actions_min: int = settings.ACTIVE_ACTIONS_MIN,
         dynamic_cohort_min: int = settings.DYNAMIC_COHORT_MIN,
@@ -54,6 +55,7 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
         super().__init__(
             course_id=course_id,
             until=until,
+            student_id=student_id,
             sliding_window_min=sliding_window_min,
             active_actions_min=active_actions_min,
             dynamic_cohort_min=dynamic_cohort_min,
@@ -240,24 +242,34 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
 
             if len(active_actions) < self.active_actions_min:
                 since -= timedelta(days=1)  # step back from one day
-            else:
-                return SlidingWindow(
-                    window=Window(since=since, until=self.until),
-                    active_actions=self._compute_activation(
-                        statements, active_actions, cohort_size
-                    ),
-                    dynamic_cohort=cohort.tolist(),
-                )
+                continue
+
+            dynamic_cohort = None
+            if self.student_id is None:
+                dynamic_cohort = cohort.tolist()
+
+            return SlidingWindow(
+                window=Window(since=since, until=self.until),
+                active_actions=self._compute_activation(
+                    statements, active_actions, cohort_size, self.student_id
+                ),
+                dynamic_cohort=dynamic_cohort,
+            )
 
         return sliding_window
 
     def _compute_activation(
-        self, statements, active_actions, dynamic_cohort_size: int
+        self,
+        statements,
+        active_actions,
+        dynamic_cohort_size: int,
+        student_id: Union[str, None],
     ) -> List[Action]:
         """Compute activation information over the course."""
         active_actions["activation_date"] = None
-        active_actions["activation_students"] = None
         active_actions["activation_rate"] = None
+        active_actions["is_activator_student"] = None
+        active_actions["activation_students"] = None
 
         for index, action in active_actions.iterrows():
             # Retrieve all statements related to the action
@@ -271,8 +283,14 @@ class SlidingWindowIndicator(BaseIndicator, CacheMixin):
                 activation_rate = 1.0
 
             active_actions.loc[index, "activation_date"] = activation_date
-            active_actions.at[index, "activation_students"] = activation_students
             active_actions.loc[index, "activation_rate"] = activation_rate
+
+            if student_id:
+                active_actions.loc[index, "is_activator_student"] = (
+                    True if student_id in activation_students else False
+                )
+            else:
+                active_actions.at[index, "activation_students"] = activation_students
 
         return dataframe_to_pydantic(Action, active_actions)
 
@@ -281,11 +299,13 @@ class CohortIndicator(BaseIndicator, CacheMixin):
     """Compute student active actions activities."""
 
     until: date = date.today()
+    student_id: Optional[str] = None
 
     def __init__(  # noqa:PLR0913
         self,
         course_id: str,
         until: Optional[date],
+        student_id: Optional[str] = None,
         sliding_window_min: int = settings.SLIDING_WINDOW_MIN,
         active_actions_min: int = settings.ACTIVE_ACTIONS_MIN,
         dynamic_cohort_min: int = settings.DYNAMIC_COHORT_MIN,
@@ -294,6 +314,7 @@ class CohortIndicator(BaseIndicator, CacheMixin):
         super().__init__(
             course_id=course_id,
             until=until,
+            student_id=student_id,
             sliding_window_min=sliding_window_min,
             active_actions_min=active_actions_min,
             dynamic_cohort_min=dynamic_cohort_min,
@@ -313,7 +334,8 @@ class CohortIndicator(BaseIndicator, CacheMixin):
     async def compute(self) -> Json:
         """Return list of active actions per student in the course cohort."""
         sliding_window_indicator = SlidingWindowIndicator(
-            course_id=self.course_id, until=self.until
+            course_id=self.course_id,
+            until=self.until,
         )
         sliding_window = await sliding_window_indicator.compute()
         statements = await sliding_window_indicator.get_statements()
@@ -330,11 +352,25 @@ class CohortIndicator(BaseIndicator, CacheMixin):
             statements["object.id"].isin([action.iri for action in active_actions])
         ]
 
+        # Function to remove duplicates from a list
+        def remove_duplicates(values: List):
+            return list(dict.fromkeys(values))
+
         student_active_actions = (
             filtered_statements.groupby("actor.account.name")["object.id"]
+            .apply(remove_duplicates)
             .agg(list)
             .reset_index()
         )
+
+        if self.student_id:
+            return (
+                student_active_actions.set_index("actor.account.name")
+                .loc[[self.student_id]]["object.id"]
+                .to_dict()
+            )
+
+        # add unique filter
         return student_active_actions.set_index("actor.account.name")[
             "object.id"
         ].to_dict()
@@ -396,28 +432,15 @@ class ScoresIndicator(BaseIndicator, CacheMixin):
         active_actions = pd.DataFrame(
             [action.dict() for action in sliding_window.active_actions]
         )
-
         active_actions.set_index("iri", inplace=True)
+
         course_cohort_indicator = CohortIndicator(
             course_id=self.course_id, until=self.until
         )
         course_cohort = await course_cohort_indicator.compute()
 
-        if self.student_id:
-            if self.student_id not in course_cohort.keys():
-                scores = {
-                    self.student_id: [
-                        -action.activation_rate
-                        for action in sliding_window.active_actions
-                    ]
-                }
-                return Scores(actions=sliding_window.active_actions, scores=scores)
-
-            else:
-                course_cohort = {self.student_id: course_cohort[self.student_id]}
-
-        # Get unique activities
-        unique_activities = sorted(
+        # Get unique activities from cohort
+        cohort_activities = sorted(
             {
                 activity
                 for activities in course_cohort.values()
@@ -432,7 +455,7 @@ class ScoresIndicator(BaseIndicator, CacheMixin):
                     1 if activity in course_cohort[student] else 0
                     for student in course_cohort
                 ]
-                for activity in unique_activities
+                for activity in cohort_activities
             },
             index=course_cohort.keys(),
         )
@@ -442,7 +465,7 @@ class ScoresIndicator(BaseIndicator, CacheMixin):
             score = actions.loc[action_id]["activation_rate"]
             return column.apply(lambda x: float(score) if x == 1 else -float(score))
 
-        df_scores = df.apply(
+        cohort_scores = df.apply(
             lambda col: compute_students_score(
                 column=col, action_id=col.name, actions=active_actions
             )
@@ -451,19 +474,39 @@ class ScoresIndicator(BaseIndicator, CacheMixin):
         average_scores = None
         totals_scores = None
 
-        if self.average and self.student_id is None:
-            average_scores = df_scores.mean().tolist()
+        if self.average:
+            average_scores = cohort_scores.mean().tolist()
 
-        if self.totals and self.student_id is None:
-            totals_scores = df_scores.sum().tolist()
+        if self.totals:
+            totals_scores = cohort_scores.sum().tolist()
+
+        if self.student_id:
+            # Student has been inactive
+            if self.student_id not in course_cohort.keys():
+                scores = {
+                    self.student_id: [
+                        -action.activation_rate
+                        for action in sliding_window.active_actions
+                    ]
+                }
+                return Scores(
+                    actions=sliding_window.active_actions,
+                    scores=scores,
+                    average_scores=average_scores,
+                    totals_scores=totals_scores,
+                )
+
+            else:
+                # Course cohort is reduced to the student only
+                cohort_scores = cohort_scores.loc[[self.student_id]]
 
         scores = {
             key: list(values.values())
-            for key, values in df_scores.to_dict(orient="index").items()
+            for key, values in cohort_scores.to_dict(orient="index").items()
         }
         actions = sorted(
             sliding_window.active_actions,
-            key=lambda x: df_scores.columns.tolist().index(x.iri),
+            key=lambda x: cohort_scores.columns.tolist().index(x.iri),
         )
 
         return Scores(

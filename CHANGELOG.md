@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Changed
 
+- API: Restrict student access to cohort information
 - Upgrade base Warren images to 0.3.0
 - Secure API endpoints with LTI token
 

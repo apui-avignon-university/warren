@@ -64,15 +64,16 @@ class Action(BaseModel):
     module_type: Union[Ressources, Activities]
     activation_date: date
     activation_rate: float
-    activation_students: List[str]
+    activation_students: Optional[List[str]] = None
+    is_activator_student: Optional[bool] = None
 
 
 class SlidingWindow(BaseModel):
     """Model for computed sliding window indicator."""
 
     window: Window
-    active_actions: Optional[List[Action]]
-    dynamic_cohort: Optional[List[str]]
+    active_actions: Optional[List[Action]] = None
+    dynamic_cohort: Optional[Union[List[str], int]]
 
 
 class Scores(BaseModel):
