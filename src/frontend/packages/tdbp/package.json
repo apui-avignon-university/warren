@@ -29,7 +29,7 @@
     "tsup": "8.0.1"
   },
   "dependencies": {
-    "@openfun/warren-core": "0.1.2",
+    "@openfun/warren-core": "0.3.0",
     "@openfun/cunningham-react": "2.4.0",
     "@tanstack/react-query": "5.17.12",
     "axios": "1.6.5",

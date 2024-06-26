@@ -11,7 +11,7 @@
   "dependencies": {
     "@apuiavignonuniversity/warren-tdbp": "*",
     "@openfun/cunningham-react": "2.2.0",
-    "@openfun/warren-core": "0.1.2",
+    "@openfun/warren-core": "0.3.0",
     "@vitejs/plugin-react": "4.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
