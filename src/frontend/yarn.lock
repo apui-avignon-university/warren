@@ -199,6 +199,13 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.22.5"
 
+"@babel/runtime@^7.12.5":
+  version "7.24.7"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.7.tgz#f4f0d5530e8dbdf59b3451b9b3e594b6ba082e12"
+  integrity sha512-UwgBRMjJP+xv857DCngvqXI3Iq6J4v0wXmwc6sapg+zyhbwmQX67LUEFrkK5tbyJ30jGuG3ZvWpBiB9LCy1kWw==
+  dependencies:
+    regenerator-runtime "^0.14.0"
+
 "@babel/runtime@^7.20.7":
   version "7.22.10"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.22.10.tgz#ae3e9631fd947cb7e3610d3e9d8fef5f76696682"
@@ -862,10 +869,10 @@
     figlet "1.6.0"
     ts-node "10.9.1"
 
-"@openfun/warren-core@0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@openfun/warren-core/-/warren-core-0.1.2.tgz#5458dcc1d4aaef9cdb3963d3db7dea5f65c502b0"
-  integrity sha512-31cwIZ2JRS2Iti6h9QnsOhQMJ2EvLOJ200zC1drvGyRCAYE5YRhpKSFhv28urVOfw+p2e0vdDIOmJaA68r1fcA==
+"@openfun/warren-core@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@openfun/warren-core/-/warren-core-0.3.0.tgz#209b99cc073c2a937266372ca4e2b1ce44be4a78"
+  integrity sha512-PMlR7TQ6k7IOCWI2VXGsSMwCgINgIoGDV5zZXCan5ws4Jkr25Yh9vyOM84W1MQebK1hL3mfAglnCQu8W9E65yQ==
   dependencies:
     "@openfun/cunningham-react" "2.4.0"
     "@tanstack/react-query" "5.17.12"
@@ -875,8 +882,10 @@
     dayjs "1.11.10"
     echarts "5.4.3"
     echarts-for-react "3.0.2"
+    jwt-decode "4.0.0"
     lodash.clonedeep "4.5.0"
     react "18.2.0"
+    react-error-boundary "4.0.13"
     react-top-loading-bar "2.3.1"
 
 "@pkgjs/parseargs@^0.11.0":
@@ -4529,6 +4538,11 @@ jsonify@^0.0.1:
     object.assign "^4.1.4"
     object.values "^1.1.6"
 
+jwt-decode@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-4.0.0.tgz#2270352425fd413785b2faf11f6e755c5151bd4b"
+  integrity sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==
+
 language-subtag-registry@^0.3.20, language-subtag-registry@~0.3.2:
   version "0.3.22"
   resolved "https://registry.yarnpkg.com/language-subtag-registry/-/language-subtag-registry-0.3.22.tgz#2e1500861b2e457eba7e7ae86877cbd08fa1fd1d"
@@ -5106,6 +5120,13 @@ react-dom@18.2.0:
   dependencies:
     loose-envify "^1.1.0"
     scheduler "^0.23.0"
+
+react-error-boundary@4.0.13:
+  version "4.0.13"
+  resolved "https://registry.yarnpkg.com/react-error-boundary/-/react-error-boundary-4.0.13.tgz#80386b7b27b1131c5fbb7368b8c0d983354c7947"
+  integrity sha512-b6PwbdSv8XeOSYvjt8LpgpKrZ0yGdtZokYwkwV2wlcZbxgopHX/hgPl5VgpnoVOWd868n1hktM8Qm4b+02MiLQ==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
 
 react-is@^16.13.1:
   version "16.13.1"
