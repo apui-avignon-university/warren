@@ -555,6 +555,8 @@ Most likely, it is not desirable to edit this file by hand!
 <p>Return course sliding window indicator.</p>
 <p>Args:
     course_id (str): The course identifier on Moodle.
+    roles (LTIRole): The roles of the user.
+    user_id (str): The user identifier on Moodle.
     until (date): End date until when to compute the sliding window.</p>
 <p>Returns:
     Json: Computed information about the sliding window.
@@ -660,6 +662,8 @@ during
 <p>Return course (static) cohort information.</p>
 <p>Args:
     course_id (str): The course identifier on Moodle.
+    roles (LTIRole): The roles of the user.
+    user_id (str): The user identifier on Moodle.
     until (date): End date until when to compute the sliding window.</p>
 <p>Returns:
     Json: Lists of completed active actions per student.</p>
