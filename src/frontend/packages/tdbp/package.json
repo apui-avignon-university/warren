@@ -1,6 +1,6 @@
 {
   "name": "@apuiavignonuniversity/warren-tdbp",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Warren frontend TdBP elements.",
   "private": false,
   "publishConfig": {
