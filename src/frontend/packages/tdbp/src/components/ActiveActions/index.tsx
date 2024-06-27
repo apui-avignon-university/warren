@@ -3,9 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import cloneDeep from "lodash.clonedeep";
 import dayjs from "dayjs";
-import { Card } from "@openfun/warren-core";
+import { Card, useLTIContext } from "@openfun/warren-core";
 import { useIsFetching } from "@tanstack/react-query";
-import { useSlidingWindow, Action, Resource } from "../../api/getSlidingWindow";
+import {
+  useSlidingWindow,
+  Action,
+  Activity,
+  Resource,
+} from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
 import { BarChartOption } from "../../types/chartOptions";
 
@@ -46,8 +51,10 @@ const baseOption: BarChartOption = {
   series: [],
 };
 
-interface ActivitiesProps {
+interface ActiveActionsProps {
   course_id: string;
+  enumType: "Resource" | "Activity";
+  title: string;
 }
 
 /**
@@ -56,8 +63,13 @@ interface ActivitiesProps {
  *
  * @returns {JSX.Element} The JSX for the Activites component.
  */
-export const Activities = ({ course_id }: ActivitiesProps) => {
+export const ActiveActions = ({
+  course_id,
+  enumType,
+  title,
+}: ActiveActionsProps) => {
   const { until } = useTdbpFilters();
+  const { appData } = useLTIContext();
   const { slidingWindow } = useSlidingWindow({ course_id, until });
 
   const resources = useMemo(() => {
@@ -70,8 +82,11 @@ export const Activities = ({ course_id }: ActivitiesProps) => {
     if (!activeActions.length) {
       return [];
     }
+
+    const enumTypeToUse = enumType === "Resource" ? Resource : Activity;
+
     const sortedResources = activeActions
-      ?.filter((action) => isInEnum(action.module_type, Resource))
+      ?.filter((action) => isInEnum(action.module_type, enumTypeToUse))
       .sort((a, b) => a.activation_rate - b.activation_rate);
     return sortedResources;
   }, [slidingWindow]);
@@ -79,21 +94,51 @@ export const Activities = ({ course_id }: ActivitiesProps) => {
   const parseYAxis = (actions: Array<Action>): Array<string> =>
     actions.map((action) => action.name) || [];
 
-  const parseSeries = (actions: Array<Action>) => ({
-    name: "Taux de consultation",
-    type: "bar",
-    stack: "total",
-    label: {
-      show: true,
-      position: "insideLeft",
-      formatter: (d: { dataIndex: number }) =>
-        dayjs(actions[d.dataIndex].activation_date).format("DD/MM"),
-    },
-    emphasis: {
-      focus: "series",
-    },
-    data: actions.map((action) => action.activation_rate * 100) || [],
-  });
+  const parseSeries = (actions: Array<Action>) => {
+    const series = [];
+
+    if (appData.is_instructor) {
+      series.push({
+        name: "Score d'activation",
+        type: "bar",
+        stack: "total",
+        label: {
+          show: true,
+          position: "insideLeft",
+          formatter: (d: { dataIndex: number }) =>
+            dayjs(actions[d.dataIndex].activation_date).format("DD/MM/YY"),
+        },
+        emphasis: {
+          focus: "series",
+        },
+        data: actions.map((action) => ({
+          value: action.activation_rate * 100,
+        })),
+      });
+    } else {
+      series.push({
+        name: "Score d'activation",
+        type: "bar",
+        stack: "total",
+        label: {
+          show: true,
+          position: "insideLeft",
+          formatter: (d: { dataIndex: number }) =>
+            dayjs(actions[d.dataIndex].activation_date).format("DD/MM/YY"),
+        },
+        emphasis: {
+          focus: "series",
+        },
+        data: actions.map((action) => ({
+          value: action.activation_rate * 100,
+          itemStyle: {
+            color: !action.is_activator_student ? undefined : "#a90000",
+          },
+        })),
+      });
+    }
+    return series;
+  };
 
   const formattedOption = useMemo(() => {
     if (!resources.length) {
@@ -103,7 +148,7 @@ export const Activities = ({ course_id }: ActivitiesProps) => {
 
     newOption.yAxis.data = parseYAxis(resources);
 
-    newOption.series = [parseSeries(resources)];
+    newOption.series = parseSeries(resources);
 
     return newOption;
   }, [resources]);
@@ -112,20 +157,18 @@ export const Activities = ({ course_id }: ActivitiesProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (currentFetchCount > 0 && formattedOption === baseOption) {
+    if (currentFetchCount > 0 && formattedOption.series.length === 0) {
       setIsLoading(true);
     } else {
       setIsLoading(false);
     }
   }, [currentFetchCount, formattedOption]);
   return (
-    <Card className="c__activities">
-      <div className="c__activities__title">
-        Taux de consultation des ressources
-      </div>
+    <Card className="c__activeactions">
+      <div className="c__activeactions__title">{title}</div>
       <ReactECharts
         option={formattedOption}
-        notMerge={true}
+        notMerge={false}
         showLoading={isLoading}
         loadingOption={{ text: "Chargement" }}
         style={{ height: 500, width: "100%" }}
