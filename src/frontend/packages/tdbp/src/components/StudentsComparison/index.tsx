@@ -11,7 +11,7 @@ import {
 } from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
 import { useScore } from "../../api/getScores";
-import { isInEnum } from "../Activities";
+import { isInEnum } from "../ActiveActions";
 import { BarChartOption } from "../../types/chartOptions";
 
 const baseOption: BarChartOption = {
@@ -114,7 +114,9 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
       emphasis: {
         focus: "series",
       },
-      data: serie,
+      data: serie.map((score) => ({
+        value: score,
+      })),
     };
   };
 
@@ -149,11 +151,11 @@ export const StudentsComparison = ({ course_id }: StudentsComparisonProps) => {
     newOption.series = [
       parseSerie(
         studentScores.map((e) => e.scoreResource),
-        "Score ressource",
+        "Ressources",
       ),
       parseSerie(
         studentScores.map((e) => e.scoreActivity),
-        "Score activité",
+        "Activités",
       ),
     ];
 

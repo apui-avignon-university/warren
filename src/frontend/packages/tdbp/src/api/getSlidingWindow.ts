@@ -37,8 +37,9 @@ export type Action = {
   name: string;
   module_type: Activity | Resource;
   activation_date: string;
-  activation_students: Array<string>;
   activation_rate: number;
+  activation_students?: Array<string>;
+  is_activator_student?: boolean;
 };
 
 type Window = {
@@ -49,7 +50,7 @@ type Window = {
 type SlidingWindowResponse = {
   window: Window;
   active_actions: Array<Action>;
-  dynamic_cohort: Array<string>;
+  dynamic_cohort?: Array<string>;
 };
 
 type SlidingWindowQueryParams = {

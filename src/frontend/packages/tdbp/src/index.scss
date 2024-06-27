@@ -1,7 +1,10 @@
 
-@forward 'components/Activities';
+@forward 'components/ActiveActions';
 @forward 'components/Radar';
 @forward 'components/StudentsComparison';
 @forward 'components/Window';
+@forward 'components/Actions';
+@forward 'components/Cohort';
 
-@forward 'pages/Overview';
+@forward 'pages/Instructor';
+@forward 'pages/Student';

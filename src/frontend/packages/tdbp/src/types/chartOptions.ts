@@ -57,7 +57,12 @@ export interface BarChartOption {
     emphasis: {
       focus: string;
     };
-    data: number[];
+    data: Array<{
+      value?: number;
+      itemStyle?: {
+        color?: string;
+      };
+    }>;
   }>;
 }
 

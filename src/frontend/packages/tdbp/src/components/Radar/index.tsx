@@ -8,7 +8,7 @@ import { useIsFetching } from "@tanstack/react-query";
 import { useSlidingWindow, Action, Resource } from "../../api/getSlidingWindow";
 import { useTdbpFilters } from "../../hooks/useTdbpFilters";
 import { Scores, useScore } from "../../api/getScores";
-import { isInEnum } from "../Activities/index";
+import { isInEnum } from "../ActiveActions/index";
 import { RadarChartOption } from "../../types/chartOptions";
 
 const baseOption: RadarChartOption = {
@@ -21,7 +21,7 @@ const baseOption: RadarChartOption = {
     },
   },
   legend: {
-    data: ["Moyenne cohorte", "Étudiant sélectionné"],
+    data: ["Moyenne de la cohorte", "Score de l'étudiant"],
   },
   radar: {
     indicator: [],
@@ -74,7 +74,7 @@ export const Radar = ({ course_id }: RadarProps) => {
     }
     const cohortMeanScores = scores.average;
     series.push({
-      name: "Moyenne cohorte",
+      name: "Moyenne de la cohorte",
       type: "radar",
       data: [
         {
@@ -94,7 +94,7 @@ export const Radar = ({ course_id }: RadarProps) => {
       .map((score: number) => score * 100);
 
     series.push({
-      name: "Étudiant sélectionné",
+      name: "Score de l'étudiant",
       type: "radar",
       data: [
         {
@@ -107,14 +107,14 @@ export const Radar = ({ course_id }: RadarProps) => {
   };
 
   const studentOptions = useMemo(() => {
-    if (!slidingWindow?.dynamic_cohort) {
+    if (!data?.scores) {
       return [];
     }
-    return slidingWindow.dynamic_cohort.map((student) => ({
+    return Object.keys(data?.scores).map((student) => ({
       value: student,
       label: student,
     }));
-  }, [slidingWindow]);
+  }, [data]);
 
   const formattedOption = useMemo(() => {
     if (!slidingWindow?.active_actions) {
@@ -149,11 +149,11 @@ export const Radar = ({ course_id }: RadarProps) => {
 
   return (
     <Card className="c__radar">
-      <div className="c__radar__title">Tableau de bord étudiant</div>
+      <div className="c__radar__title">Scores étudiants</div>
       <Select
         label="Étudiant"
         defaultValue={selectedStudent}
-        disabled={!slidingWindow?.dynamic_cohort}
+        disabled={!data?.scores}
         options={studentOptions}
         multi={false}
         onChange={(selectedValue) =>
