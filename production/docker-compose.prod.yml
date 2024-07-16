@@ -22,7 +22,7 @@ services:
       - backend
   
   app:
-    image: apuiavignonuniversity/warren-tdbp:app-v0.3.1
+    image: apuiavignonuniversity/warren-tdbp:app-v0.4.0
     env_file:
       - env.d/app.env
     ports:
@@ -49,7 +49,7 @@ services:
       - backend
 
   api:
-    image: apuiavignonuniversity/warren-tdbp:api-v0.3.1
+    image: apuiavignonuniversity/warren-tdbp:api-v0.4.0
     env_file:
       - env.d/api.env
     ports:
@@ -82,7 +82,7 @@ services:
       - backend
 
   indexer-cronjob:
-    image: apuiavignonuniversity/warren-tdbp:api-v0.3.1
+    image: apuiavignonuniversity/warren-tdbp:api-v0.4.0
     env_file:
       - env.d/api.env
     environment:
