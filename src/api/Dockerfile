@@ -1,8 +1,8 @@
 # -- Base image --
-FROM fundocker/warren:api-core-0.3.2 as base
+FROM fundocker/warren:api-core-0.4.0 AS base
 
 # -- Builder --
-FROM base as builder
+FROM base AS builder
 
 WORKDIR /build
 
@@ -14,7 +14,7 @@ COPY . /build/
 RUN pip install ./plugins/tdbp
 
 # -- Core --
-FROM base as core
+FROM base AS core
 
 COPY --from=builder /usr/local /usr/local
 
@@ -30,7 +30,7 @@ RUN  apt-get update && \
      rm -rf /var/lib/apt/lists/*
 
 # -- Development --
-FROM core as development
+FROM core AS development
 
 # Should be a priviledged user
 USER root:root
@@ -47,7 +47,7 @@ RUN pip install -e plugins/tdbp[dev]
 USER ${DOCKER_USER:-1000}
 
 # -- Production --
-FROM core as production
+FROM core AS production
 
 # Un-privileged user running the application
 USER ${DOCKER_USER:-1000}
